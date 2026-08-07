@@ -8,85 +8,136 @@ export function renderLandingView() {
   const assetImages = store.getAssetImages();
 
   return `
-    <!-- Full-Width Hero Section with Animated Background Image Slider -->
+    <!-- Full-Width Hero Section showcasing Buildings, Raw Clay, and Fire Kiln Bricks with Product Quality Specs -->
     <div class="hero-section" id="hero-slider-container">
-      <div class="hero-slider-bg" id="hero-bg-slide" style="background-image: url('${assetImages.factory}');"></div>
+      <div class="hero-slider-bg" id="hero-bg-slide" style="background-image: url('${assetImages.kiln}');"></div>
       
       <div class="hero-content">
         <div class="hero-badge">
-          <span>🧱</span> NSR Brick Enterprise • ISO 9001 Certified Kilns
+          <span>🧱</span> NSR Brick Enterprise • ISO 9001 Certified Fire Kilns & Raw Clay
         </div>
+
         <h1 class="hero-title">
-          High Strength Red Clay Bricks for Modern Construction
+          High-Density Kiln Burnt Red Clay & Fire Bricks for Modern Architecture
         </h1>
+
         <p class="hero-subtitle">
-          Leading manufacturer of high-density kiln burnt red clay bricks, wire-cut facing bricks, and thermal hollow blocks. Trusted by top builders, contractors, and real estate developers across India.
+          Engineered for maximum compressive strength, load-bearing durability, and zero efflorescence. Manufactured from purified raw clay deposits and baked at 1,050°C in automated tunnel kilns.
         </p>
+
+        <!-- Product Quality Spec Badges Bar -->
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 2rem; background: rgba(15, 18, 21, 0.75); border: 1px solid var(--primary-terracotta); border-radius: var(--radius-md); padding: 1rem; backdrop-filter: blur(6px);">
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <span style="font-size: 1.5rem;">💪</span>
+            <div>
+              <div style="font-weight: 800; font-size: 0.95rem; color: var(--accent-gold);">3,850+ PSI</div>
+              <div style="font-size: 0.72rem; color: var(--text-muted);">Compressive Strength (28.9 MPa)</div>
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 0.5rem; border-left: 1px solid var(--bg-surface-border); padding-left: 1rem;">
+            <span style="font-size: 1.5rem;">🔥</span>
+            <div>
+              <div style="font-weight: 800; font-size: 0.95rem; color: var(--accent-amber);">1,050°C Fire Fired</div>
+              <div style="font-size: 0.72rem; color: var(--text-muted);">High Temperature Tunnel Kiln</div>
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 0.5rem; border-left: 1px solid var(--bg-surface-border); padding-left: 1rem;">
+            <span style="font-size: 1.5rem;">🌧️</span>
+            <div>
+              <div style="font-weight: 800; font-size: 0.95rem; color: var(--status-info);">< 6% Water Absorption</div>
+              <div style="font-size: 0.72rem; color: var(--text-muted);">Monsoon Dampness Resistant</div>
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 0.5rem; border-left: 1px solid var(--bg-surface-border); padding-left: 1rem;">
+            <span style="font-size: 1.5rem;">🌿</span>
+            <div>
+              <div style="font-weight: 800; font-size: 0.95rem; color: var(--status-success);">ISO 14001 Eco</div>
+              <div style="font-size: 0.72rem; color: var(--text-muted);">Nil Efflorescence Class I</div>
+            </div>
+          </div>
+        </div>
 
         <div class="hero-ctas">
           <button class="btn btn-primary btn-lg btn-scroll-quote">
             📋 Get a Free Quote
           </button>
           <button class="btn btn-secondary btn-lg nav-link-trigger" data-view="builder">
-            📐 Brick Calculator
+            📐 Brick Quantity Calculator
           </button>
           <button class="btn btn-outline-terracotta btn-lg btn-scroll-products">
-            🧱 Explore Products
+            🧱 Explore Raw & Fire Bricks
           </button>
-          <button class="btn btn-secondary btn-lg" onclick="alert('Connecting to NSR Sales Team on WhatsApp (+91 98765 43210)...')">
-            💬 WhatsApp Sales
+          <button class="btn btn-secondary btn-lg nav-link-trigger" data-view="login">
+            🔑 Admin & User Login
           </button>
         </div>
       </div>
     </div>
 
-    <!-- Company Introduction & Why Choose Us Section -->
+    <!-- Admin Panel Quick Access Section on Landing Page -->
+    <div style="background: linear-gradient(135deg, rgba(192, 74, 39, 0.15), var(--bg-surface-elevated)); border: 1px solid var(--primary-terracotta); border-radius: var(--radius-lg); padding: 2rem 2.5rem; margin-bottom: 3.5rem; box-shadow: var(--shadow-glow);">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.5rem;">
+        
+        <div style="max-width: 650px;">
+          <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+            <span class="badge badge-warning">👑 Admin & Kiln Management Portal</span>
+            <span style="font-size: 0.78rem; color: var(--accent-gold);">Firebase Authenticated Access</span>
+          </div>
+          <h2 style="font-family: var(--font-heading); font-size: 1.8rem; font-weight: 900; color: var(--text-main); margin-bottom: 0.5rem;">
+            Enterprise Admin Control Panel
+          </h2>
+          <p style="color: var(--text-muted); font-size: 0.92rem; line-height: 1.6;">
+            Executive control panel for business managers: monitor 1,050°C tunnel kiln firing telemetry, raw clay quarry reserves, contractor freight dispatches, customer payments ledger, and live Firebase Firestore database synchronization.
+          </p>
+        </div>
+
+        <div>
+          <button class="btn btn-primary btn-lg nav-link-trigger" data-view="dashboard" style="padding: 0.9rem 2rem; font-size: 1rem; box-shadow: var(--shadow-lg);">
+            👑 Enter Admin Panel (Executive ERP)
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Raw Material Quality & Fire Brick Product Showcase -->
     <div style="margin-bottom: 4rem;">
-      <div style="text-align:center; max-width:700px; margin:0 auto 2.5rem auto;">
-        <h2 style="font-family:var(--font-heading); font-size:2rem; font-weight:800; color:var(--text-main); margin-bottom:0.5rem;">
-          Why Choose NSR Brick Enterprise?
+      <div style="text-align:center; max-width:750px; margin:0 auto 2.5rem auto;">
+        <h2 style="font-family:var(--font-heading); font-size:2.2rem; font-weight:800; color:var(--text-main); margin-bottom:0.5rem;">
+          Raw Clay & Fire Brick Product Line
         </h2>
         <p style="color:var(--text-muted); font-size:0.95rem;">
-          We combine traditional high-density clay moulding with automated tunnel kiln baking technology to ensure maximum compressive load capacity.
+          Every brick grade is manufactured from purified natural clay soil and kiln baked for ultimate compressive strength
         </p>
       </div>
 
-      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap:1.5rem;">
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap:1.5rem; margin-bottom:2.5rem;">
         
         <div style="background:var(--bg-surface); border:1px solid var(--bg-surface-border); border-radius:var(--radius-lg); padding:1.5rem;">
           <div style="font-size:2.2rem; margin-bottom:0.75rem;">🏺</div>
-          <h3 style="font-family:var(--font-heading); font-size:1.15rem; font-weight:700; color:var(--accent-amber); margin-bottom:0.35rem;">Premium Natural Clay</h3>
-          <p style="font-size:0.85rem; color:var(--text-muted);">Sourced from high-grade alluvial soil deposits, purified for zero efflorescence and deep rich red tone.</p>
+          <h3 style="font-family:var(--font-heading); font-size:1.15rem; font-weight:700; color:var(--accent-amber); margin-bottom:0.35rem;">Purified Raw Clay Material</h3>
+          <p style="font-size:0.85rem; color:var(--text-muted);">Extracted from rich alluvial quarry soil deposits, double-vacuum de-aired to ensure structural density and zero air voids.</p>
         </div>
 
         <div style="background:var(--bg-surface); border:1px solid var(--bg-surface-border); border-radius:var(--radius-lg); padding:1.5rem;">
-          <div style="font-size:2.2rem; margin-bottom:0.75rem;">💪</div>
-          <h3 style="font-family:var(--font-heading); font-size:1.15rem; font-weight:700; color:var(--accent-gold); margin-bottom:0.35rem;">High Compressive Strength</h3>
-          <p style="font-size:0.85rem; color:var(--text-muted);">Lab tested up to 4,200 PSI (28.9 MPa) to easily support multi-story load bearing civil structures.</p>
+          <div style="font-size:2.2rem; margin-bottom:0.75rem;">🔥</div>
+          <h3 style="font-family:var(--font-heading); font-size:1.15rem; font-weight:700; color:var(--accent-gold); margin-bottom:0.35rem;">1,050°C Tunnel Fire Baking</h3>
+          <p style="font-size:0.85rem; color:var(--text-muted);">Baked in computer-controlled tunnel kilns for 72 hours, vitrifying the clay into high-density fire-resistant bricks.</p>
+        </div>
+
+        <div style="background:var(--bg-surface); border:1px solid var(--bg-surface-border); border-radius:var(--radius-lg); padding:1.5rem;">
+          <div style="font-size:2.2rem; margin-bottom:0.75rem;">🏢</div>
+          <h3 style="font-family:var(--font-heading); font-size:1.15rem; font-weight:700; color:var(--status-info); margin-bottom:0.35rem;">High-Rise Load Capacity</h3>
+          <p style="font-size:0.85rem; color:var(--text-muted);">Lab tested up to 4,200 PSI to easily support multi-story commercial buildings, luxury villas, and civil infrastructure.</p>
         </div>
 
         <div style="background:var(--bg-surface); border:1px solid var(--bg-surface-border); border-radius:var(--radius-lg); padding:1.5rem;">
           <div style="font-size:2.2rem; margin-bottom:0.75rem;">🌧️</div>
-          <h3 style="font-family:var(--font-heading); font-size:1.15rem; font-weight:700; color:var(--status-info); margin-bottom:0.35rem;">Weather & Thermal Resistant</h3>
-          <p style="font-size:0.85rem; color:var(--text-muted);">Ultra-low 5% water absorption rate resists monsoon dampness, thermal expansion, and salt efflorescence.</p>
-        </div>
-
-        <div style="background:var(--bg-surface); border:1px solid var(--bg-surface-border); border-radius:var(--radius-lg); padding:1.5rem;">
-          <div style="font-size:2.2rem; margin-bottom:0.75rem;">🚚</div>
-          <div style="font-family:var(--font-heading); font-size:1.15rem; font-weight:700; color:var(--status-success); margin-bottom:0.35rem;">Fast Freight Delivery</div>
-          <p style="font-size:0.85rem; color:var(--text-muted);">Dedicated 24-ton flatbed truck fleet equipped with GPS tracking for direct job site unloading.</p>
-        </div>
-
-        <div style="background:var(--bg-surface); border:1px solid var(--bg-surface-border); border-radius:var(--radius-lg); padding:1.5rem;">
-          <div style="font-size:2.2rem; margin-bottom:0.75rem;">🏷️</div>
-          <div style="font-family:var(--font-heading); font-size:1.15rem; font-weight:700; color:var(--accent-amber); margin-bottom:0.35rem;">Affordable Direct Pricing</div>
-          <p style="font-size:0.85rem; color:var(--text-muted);">Direct factory-to-site supply without middlemen, offering bulk volume discounts for townships.</p>
-        </div>
-
-        <div style="background:var(--bg-surface); border:1px solid var(--bg-surface-border); border-radius:var(--radius-lg); padding:1.5rem;">
-          <div style="font-size:2.2rem; margin-bottom:0.75rem;">🔬</div>
-          <div style="font-family:var(--font-heading); font-size:1.15rem; font-weight:700; color:var(--status-success); margin-bottom:0.35rem;">100% Quality Assurance</div>
-          <p style="font-size:0.85rem; color:var(--text-muted);">Every batch comes with ISO 14001 green ratings and certified lab test reports.</p>
+          <h3 style="font-family:var(--font-heading); font-size:1.15rem; font-weight:700; color:var(--status-success); margin-bottom:0.35rem;">Nil Efflorescence Guarantee</h3>
+          <p style="font-size:0.85rem; color:var(--text-muted);">Ultra-low 5% water absorption rate prevents salt efflorescence, moisture damage, and surface cracking over decades.</p>
         </div>
 
       </div>
@@ -151,13 +202,13 @@ export function renderLandingView() {
         <h2 style="font-family:var(--font-heading); font-size:2rem; font-weight:800; color:var(--text-main); margin-bottom:0.5rem;">
           Our 8-Step Manufacturing Process
         </h2>
-        <p style="color:var(--text-muted); font-size:0.9rem;">From raw clay extraction to high-temperature kiln firing and quality packing</p>
+        <p style="color:var(--text-muted); font-size:0.9rem;">From raw clay extraction to high-temperature fire kiln baking and quality packing</p>
       </div>
 
       <div class="manufacturing-timeline">
         <div class="timeline-step-card">
           <div class="step-num">1</div>
-          <div class="step-title">Clay Collection</div>
+          <div class="step-title">Raw Clay Extraction</div>
         </div>
         <div class="timeline-step-card">
           <div class="step-num">2</div>
@@ -165,7 +216,7 @@ export function renderLandingView() {
         </div>
         <div class="timeline-step-card">
           <div class="step-num">3</div>
-          <div class="step-title">Vacuum Molding</div>
+          <div class="step-title">Vacuum Moulding</div>
         </div>
         <div class="timeline-step-card">
           <div class="step-num">4</div>
@@ -173,11 +224,11 @@ export function renderLandingView() {
         </div>
         <div class="timeline-step-card">
           <div class="step-num">5</div>
-          <div class="step-title">1050°C Kiln Firing</div>
+          <div class="step-title">1,050°C Fire Firing</div>
         </div>
         <div class="timeline-step-card">
           <div class="step-num">6</div>
-          <div class="step-title">Lab Inspection</div>
+          <div class="step-title">Strength Lab Check</div>
         </div>
         <div class="timeline-step-card">
           <div class="step-num">7</div>
@@ -185,7 +236,7 @@ export function renderLandingView() {
         </div>
         <div class="timeline-step-card">
           <div class="step-num">8</div>
-          <div class="step-title">Freight Delivery</div>
+          <div class="step-title">Freight Site Delivery</div>
         </div>
       </div>
     </div>
@@ -193,7 +244,7 @@ export function renderLandingView() {
     <!-- Masonry Photo Gallery Grid -->
     <div style="margin-bottom: 4rem;">
       <h2 style="font-family:var(--font-heading); font-size:1.8rem; font-weight:800; color:var(--text-main); margin-bottom:1.5rem;">
-        📸 Factory, Kiln & Project Site Gallery
+        📸 Factory, Fire Kilns & High-Rise Building Gallery
       </h2>
 
       <div class="gallery-grid">
@@ -202,12 +253,12 @@ export function renderLandingView() {
           <div class="gallery-caption">NSR Automated Tunnel Kiln Factory</div>
         </div>
         <div class="gallery-item">
-          <img src="${assetImages.kiln}" alt="Brick Kiln Firing">
-          <div class="gallery-caption">High Temperature 1,050°C Kiln Baking</div>
+          <img src="${assetImages.kiln}" alt="Fire Brick Kiln Firing">
+          <div class="gallery-caption">High Temperature 1,050°C Fire Brick Baking</div>
         </div>
         <div class="gallery-item">
           <img src="${assetImages.construction}" alt="Construction Site">
-          <div class="gallery-caption">High-Rise Residential Project Site</div>
+          <div class="gallery-caption">High-Rise Residential Building Site</div>
         </div>
         <div class="gallery-item">
           <img src="${assetImages.luxuryHome}" alt="Luxury Villa Exterior">
@@ -245,10 +296,10 @@ export function renderLandingView() {
         
         <div>
           <h2 style="font-family:var(--font-heading); font-size:1.8rem; font-weight:800; color:var(--accent-amber); margin-bottom:0.75rem;">
-            📞 Contact NSR Brick Sales
+            📞 Contact NSR Brick Sales & Management
           </h2>
           <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:1.5rem;">
-            Have questions or need bulk quote estimates? Reach out to our dedicated technical team.
+            Have questions or need bulk quote estimates for high-rise buildings? Reach out to our technical team.
           </p>
 
           <div style="display:flex; flex-direction:column; gap:1rem; font-size:0.9rem; margin-bottom:2rem;">
@@ -299,7 +350,7 @@ export function renderLandingView() {
 
             <div class="form-group">
               <label class="form-label">Project Details / Message</label>
-              <textarea id="inq-message" class="form-control" rows="3" placeholder="Specify site location and unloading requirements..."></textarea>
+              <textarea id="inq-message" class="form-control" rows="3" placeholder="Specify building site location and unloading requirements..."></textarea>
             </div>
 
             <button type="submit" class="btn btn-primary" style="width:100%;">
