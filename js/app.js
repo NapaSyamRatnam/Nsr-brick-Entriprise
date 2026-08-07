@@ -423,16 +423,41 @@ class App {
   }
 
   bindViewSpecificListeners() {
-    // Account Login Form Submit (Clean Inputs)
+    // Account Login Form Submit with Required Fields Validation
     const loginForm = document.getElementById('form-login-account');
     if (loginForm) {
       loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const email = document.getElementById('login-email').value.trim();
-        const password = document.getElementById('login-password').value.trim();
+        const emailElem = document.getElementById('login-email');
+        const passwordElem = document.getElementById('login-password');
+        const errEmail = document.getElementById('err-login-email');
+        const errPass = document.getElementById('err-login-password');
 
-        if (!email || !password) {
-          this.showToast('Please enter both email and password', 'warning');
+        const email = emailElem.value.trim();
+        const password = passwordElem.value.trim();
+
+        let isValid = true;
+
+        if (!email) {
+          emailElem.style.borderColor = 'var(--status-danger)';
+          if (errEmail) errEmail.style.display = 'block';
+          isValid = false;
+        } else {
+          emailElem.style.borderColor = 'var(--bg-surface-border)';
+          if (errEmail) errEmail.style.display = 'none';
+        }
+
+        if (!password) {
+          passwordElem.style.borderColor = 'var(--status-danger)';
+          if (errPass) errPass.style.display = 'block';
+          isValid = false;
+        } else {
+          passwordElem.style.borderColor = 'var(--bg-surface-border)';
+          if (errPass) errPass.style.display = 'none';
+        }
+
+        if (!isValid) {
+          this.showToast('⚠️ Please enter both Email Address and Password to log in.', 'warning');
           return;
         }
 
@@ -449,19 +474,56 @@ class App {
       });
     }
 
-    // Account Registration Form Submit (Clean Inputs)
+    // Account Registration Form Submit with Required Fields Validation
     const regForm = document.getElementById('form-register-account');
     if (regForm) {
       regForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const name = document.getElementById('reg-name').value.trim();
-        const email = document.getElementById('reg-email').value.trim();
-        const password = document.getElementById('reg-password').value.trim();
+        const nameElem = document.getElementById('reg-name');
+        const emailElem = document.getElementById('reg-email');
+        const passwordElem = document.getElementById('reg-password');
+        
+        const errName = document.getElementById('err-reg-name');
+        const errEmail = document.getElementById('err-reg-email');
+        const errPass = document.getElementById('err-reg-password');
+
+        const name = nameElem.value.trim();
+        const email = emailElem.value.trim();
+        const password = passwordElem.value.trim();
         const role = document.getElementById('reg-role').value;
         const company = document.getElementById('reg-company').value.trim();
 
-        if (!name || !email || !password) {
-          this.showToast('Please complete all required fields', 'warning');
+        let isValid = true;
+
+        if (!name) {
+          nameElem.style.borderColor = 'var(--status-danger)';
+          if (errName) errName.style.display = 'block';
+          isValid = false;
+        } else {
+          nameElem.style.borderColor = 'var(--bg-surface-border)';
+          if (errName) errName.style.display = 'none';
+        }
+
+        if (!email) {
+          emailElem.style.borderColor = 'var(--status-danger)';
+          if (errEmail) errEmail.style.display = 'block';
+          isValid = false;
+        } else {
+          emailElem.style.borderColor = 'var(--bg-surface-border)';
+          if (errEmail) errEmail.style.display = 'none';
+        }
+
+        if (!password) {
+          passwordElem.style.borderColor = 'var(--status-danger)';
+          if (errPass) errPass.style.display = 'block';
+          isValid = false;
+        } else {
+          passwordElem.style.borderColor = 'var(--bg-surface-border)';
+          if (errPass) errPass.style.display = 'none';
+        }
+
+        if (!isValid) {
+          this.showToast('⚠️ Please complete all required fields (*).', 'warning');
           return;
         }
 

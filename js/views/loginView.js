@@ -1,4 +1,4 @@
-/* NSR Brick Enterprise - Production Firebase Login & Registration View */
+/* NSR Brick Enterprise - Separate Login & Registration View with Required Field Validation */
 
 export function renderLoginView() {
   return `
@@ -11,7 +11,7 @@ export function renderLoginView() {
           NSR Brick Enterprise Portal
         </h1>
         <p style="font-size: 0.95rem; color: var(--text-muted); max-width: 580px; margin: 0 auto; line-height: 1.6;">
-          🔒 <strong>Production Firebase Authentication Active</strong>: Please log in or register your account to access Executive ERP, Stock Inventory, Freight Logistics, and Financial Ledgers.
+          🔒 <strong>Production Firebase Authentication Active</strong>: Please enter your login credentials or register a new account to unlock full access to Executive ERP, Stock Inventory, Freight Logistics, and Financial Ledgers.
         </p>
       </div>
 
@@ -36,48 +36,73 @@ export function renderLoginView() {
             Sign In with Google Account
           </button>
 
-          <div style="text-align: center; font-size: 0.75rem; color: var(--text-subtle); margin-bottom: 1.75rem; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700;">OR ENTER CREDENTIALS BELOW</div>
+          <div style="text-align: center; font-size: 0.75rem; color: var(--text-subtle); margin-bottom: 1.75rem; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700;">OR ENTER REQUIRED CREDENTIALS BELOW</div>
 
-          <!-- LOGIN FORM (FIELDS ARE 100% EMPTY) -->
+          <!-- LOGIN FORM (WITH EXPLICIT REQUIRED FIELD VALIDATION) -->
           <div id="auth-panel-login">
-            <form id="form-login-account">
+            <form id="form-login-account" novalidate>
               <div class="form-group">
-                <label class="form-label">Email Address / Username</label>
+                <label class="form-label" for="login-email">
+                  Email Address / Username <span style="color: var(--status-danger);">*</span>
+                </label>
                 <input type="email" id="login-email" class="form-control" placeholder="Enter your email address" value="" required>
+                <span id="err-login-email" style="display: none; font-size: 0.75rem; color: var(--status-danger); margin-top: 0.25rem;">
+                  ⚠️ Email Address is required to log in.
+                </span>
               </div>
 
               <div class="form-group">
-                <label class="form-label">Password</label>
+                <label class="form-label" for="login-password">
+                  Password <span style="color: var(--status-danger);">*</span>
+                </label>
                 <input type="password" id="login-password" class="form-control" placeholder="Enter your password" value="" required>
+                <span id="err-login-password" style="display: none; font-size: 0.75rem; color: var(--status-danger); margin-top: 0.25rem;">
+                  ⚠️ Password is required to log in.
+                </span>
               </div>
 
-              <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem; padding: 0.85rem; font-size: 0.95rem;">
+              <button type="submit" id="btn-submit-login" class="btn btn-primary" style="width: 100%; margin-top: 1rem; padding: 0.85rem; font-size: 0.95rem;">
                 🚀 Log In & Unlock ERP Access
               </button>
             </form>
           </div>
 
-          <!-- REGISTER FORM (FIELDS ARE 100% EMPTY) -->
+          <!-- REGISTER FORM (WITH EXPLICIT REQUIRED FIELD VALIDATION) -->
           <div id="auth-panel-register" style="display: none;">
-            <form id="form-register-account">
+            <form id="form-register-account" novalidate>
               <div class="form-group">
-                <label class="form-label">Full Name</label>
+                <label class="form-label" for="reg-name">
+                  Full Name <span style="color: var(--status-danger);">*</span>
+                </label>
                 <input type="text" id="reg-name" class="form-control" placeholder="Enter your full name" value="" required>
+                <span id="err-reg-name" style="display: none; font-size: 0.75rem; color: var(--status-danger); margin-top: 0.25rem;">
+                  ⚠️ Full Name is required to register.
+                </span>
               </div>
 
               <div class="form-group">
-                <label class="form-label">Email Address</label>
+                <label class="form-label" for="reg-email">
+                  Email Address <span style="color: var(--status-danger);">*</span>
+                </label>
                 <input type="email" id="reg-email" class="form-control" placeholder="Enter your email address" value="" required>
+                <span id="err-reg-email" style="display: none; font-size: 0.75rem; color: var(--status-danger); margin-top: 0.25rem;">
+                  ⚠️ Valid Email Address is required.
+                </span>
               </div>
 
               <div class="form-group">
-                <label class="form-label">Password</label>
+                <label class="form-label" for="reg-password">
+                  Password <span style="color: var(--status-danger);">*</span>
+                </label>
                 <input type="password" id="reg-password" class="form-control" placeholder="Create a secure password" value="" required>
+                <span id="err-reg-password" style="display: none; font-size: 0.75rem; color: var(--status-danger); margin-top: 0.25rem;">
+                  ⚠️ Password is required.
+                </span>
               </div>
 
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                 <div class="form-group">
-                  <label class="form-label">Account Role</label>
+                  <label class="form-label" for="reg-role">Account Role</label>
                   <select id="reg-role" class="form-select">
                     <option value="builder">Construction Builder / Contractor</option>
                     <option value="owner">Business Owner / Kiln Admin Manager</option>
@@ -87,12 +112,12 @@ export function renderLoginView() {
                 </div>
 
                 <div class="form-group">
-                  <label class="form-label">Company / Business Name</label>
+                  <label class="form-label" for="reg-company">Company / Business Name</label>
                   <input type="text" id="reg-company" class="form-control" placeholder="Enterprise Company Name" value="">
                 </div>
               </div>
 
-              <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem; padding: 0.85rem; font-size: 0.95rem;">
+              <button type="submit" id="btn-submit-register" class="btn btn-primary" style="width: 100%; margin-top: 1rem; padding: 0.85rem; font-size: 0.95rem;">
                 ✍️ Register Account & Push to Firebase Database
               </button>
             </form>
