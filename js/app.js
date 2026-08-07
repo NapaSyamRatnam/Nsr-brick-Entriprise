@@ -141,32 +141,17 @@ class App {
 
     // Content Event Delegation
     this.contentContainer.addEventListener('click', async (e) => {
-      // Tab Switcher on Login/Register View
-      if (e.target.id === 'tab-btn-login') {
-        document.getElementById('tab-btn-login').classList.add('active');
-        document.getElementById('tab-btn-login').style.borderBottomColor = 'var(--primary-terracotta)';
-        document.getElementById('tab-btn-login').style.color = 'var(--accent-amber)';
-
-        document.getElementById('tab-btn-register').classList.remove('active');
-        document.getElementById('tab-btn-register').style.borderBottomColor = 'transparent';
-        document.getElementById('tab-btn-register').style.color = 'var(--text-muted)';
-
-        document.getElementById('auth-panel-login').style.display = 'block';
-        document.getElementById('auth-panel-register').style.display = 'none';
+      // Tab Switcher on Login/Register View (Admin Login, Admin Reg, User Auth)
+      if (e.target.id === 'tab-btn-admin-login') {
+        this.switchAuthTab('tab-btn-admin-login', 'auth-panel-admin-login');
         return;
       }
-
-      if (e.target.id === 'tab-btn-register') {
-        document.getElementById('tab-btn-register').classList.add('active');
-        document.getElementById('tab-btn-register').style.borderBottomColor = 'var(--primary-terracotta)';
-        document.getElementById('tab-btn-register').style.color = 'var(--accent-amber)';
-
-        document.getElementById('tab-btn-login').classList.remove('active');
-        document.getElementById('tab-btn-login').style.borderBottomColor = 'transparent';
-        document.getElementById('tab-btn-login').style.color = 'var(--text-muted)';
-
-        document.getElementById('auth-panel-login').style.display = 'none';
-        document.getElementById('auth-panel-register').style.display = 'block';
+      if (e.target.id === 'tab-btn-admin-reg') {
+        this.switchAuthTab('tab-btn-admin-reg', 'auth-panel-admin-reg');
+        return;
+      }
+      if (e.target.id === 'tab-btn-user-auth') {
+        this.switchAuthTab('tab-btn-user-auth', 'auth-panel-user');
         return;
       }
 
@@ -422,16 +407,43 @@ class App {
     `;
   }
 
+  switchAuthTab(activeTabId, activePanelId) {
+    const tabs = ['tab-btn-admin-login', 'tab-btn-admin-reg', 'tab-btn-user-auth'];
+    const panels = ['auth-panel-admin-login', 'auth-panel-admin-reg', 'auth-panel-user'];
+
+    tabs.forEach(tabId => {
+      const tab = document.getElementById(tabId);
+      if (tab) {
+        if (tabId === activeTabId) {
+          tab.classList.add('active');
+          tab.style.borderBottomColor = 'var(--primary-terracotta)';
+          tab.style.color = 'var(--accent-amber)';
+        } else {
+          tab.classList.remove('active');
+          tab.style.borderBottomColor = 'transparent';
+          tab.style.color = 'var(--text-muted)';
+        }
+      }
+    });
+
+    panels.forEach(panelId => {
+      const panel = document.getElementById(panelId);
+      if (panel) {
+        panel.style.display = panelId === activePanelId ? 'block' : 'none';
+      }
+    });
+  }
+
   bindViewSpecificListeners() {
-    // Account Login Form Submit with Required Fields Validation
-    const loginForm = document.getElementById('form-login-account');
-    if (loginForm) {
-      loginForm.addEventListener('submit', async (e) => {
+    // ADMIN MANAGER LOGIN FORM SUBMIT (syamratnam123@gmail.com / Syam@1234)
+    const adminLoginForm = document.getElementById('form-admin-login');
+    if (adminLoginForm) {
+      adminLoginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const emailElem = document.getElementById('login-email');
-        const passwordElem = document.getElementById('login-password');
-        const errEmail = document.getElementById('err-login-email');
-        const errPass = document.getElementById('err-login-password');
+        const emailElem = document.getElementById('admin-email');
+        const passwordElem = document.getElementById('admin-password');
+        const errEmail = document.getElementById('err-admin-email');
+        const errPass = document.getElementById('err-admin-password');
 
         const email = emailElem.value.trim();
         const password = passwordElem.value.trim();
@@ -457,13 +469,104 @@ class App {
         }
 
         if (!isValid) {
+          this.showToast('⚠️ Please enter Admin Manager Username and Password.', 'warning');
+          return;
+        }
+
+        const newUser = await firebaseAuth.signInWithEmail(email, password);
+        
+        adminLoginForm.reset();
+        
+        this.updateUserHeaderUI();
+        store.setView('dashboard');
+        this.updateNavUI();
+        this.renderActiveView();
+        this.showToast(`👑 Admin Manager Authenticated: Welcome ${newUser.name}!`, 'success');
+      });
+    }
+
+    // ADMIN MANAGER REGISTRATION FORM SUBMIT
+    const adminRegForm = document.getElementById('form-admin-register');
+    if (adminRegForm) {
+      adminRegForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const nameElem = document.getElementById('areg-name');
+        const emailElem = document.getElementById('areg-email');
+        const passwordElem = document.getElementById('areg-password');
+        
+        const errName = document.getElementById('err-areg-name');
+        const errEmail = document.getElementById('err-areg-email');
+        const errPass = document.getElementById('err-areg-password');
+
+        const name = nameElem.value.trim();
+        const email = emailElem.value.trim();
+        const password = passwordElem.value.trim();
+        const company = document.getElementById('areg-company').value.trim();
+
+        let isValid = true;
+
+        if (!name) {
+          nameElem.style.borderColor = 'var(--status-danger)';
+          if (errName) errName.style.display = 'block';
+          isValid = false;
+        } else {
+          nameElem.style.borderColor = 'var(--bg-surface-border)';
+          if (errName) errName.style.display = 'none';
+        }
+
+        if (!email) {
+          emailElem.style.borderColor = 'var(--status-danger)';
+          if (errEmail) errEmail.style.display = 'block';
+          isValid = false;
+        } else {
+          emailElem.style.borderColor = 'var(--bg-surface-border)';
+          if (errEmail) errEmail.style.display = 'none';
+        }
+
+        if (!password) {
+          passwordElem.style.borderColor = 'var(--status-danger)';
+          if (errPass) errPass.style.display = 'block';
+          isValid = false;
+        } else {
+          passwordElem.style.borderColor = 'var(--bg-surface-border)';
+          if (errPass) errPass.style.display = 'none';
+        }
+
+        if (!isValid) {
+          this.showToast('⚠️ Please complete all required Admin registration fields (*).', 'warning');
+          return;
+        }
+
+        const newUser = await firebaseAuth.registerWithEmail(name, email, password, 'owner', company);
+        
+        adminRegForm.reset();
+
+        this.updateUserHeaderUI();
+        store.setView('dashboard');
+        this.updateNavUI();
+        this.renderActiveView();
+        this.showToast(`🔥 Admin Manager Account Registered & Pushed to Firebase: Welcome, ${newUser.name}!`, 'success');
+      });
+    }
+
+    // Account Login Form Submit with Required Fields Validation
+    const loginForm = document.getElementById('form-login-account');
+    if (loginForm) {
+      loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const emailElem = document.getElementById('login-email');
+        const passwordElem = document.getElementById('login-password');
+
+        const email = emailElem.value.trim();
+        const password = passwordElem.value.trim();
+
+        if (!email || !password) {
           this.showToast('⚠️ Please enter both Email Address and Password to log in.', 'warning');
           return;
         }
 
         const newUser = await firebaseAuth.signInWithEmail(email, password);
         
-        // Reset form fields
         loginForm.reset();
         
         this.updateUserHeaderUI();
