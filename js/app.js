@@ -1,4 +1,4 @@
-/* NSR Brick Enterprise - Core ERP & CRM Application Controller with Strict Auth Guard */
+/* NSR Brick Enterprise - Core ERP & CRM Application Controller with Clean Authentication & Firestore Sync */
 
 import { store } from './store.js';
 import { getFirebaseConfig, saveFirebaseConfig } from './firebaseConfig.js';
@@ -15,6 +15,7 @@ import { renderWorkerPortal } from './views/workerPortal.js';
 import { renderRealEstatePortal } from './views/realEstatePortal.js';
 import { renderLoginView } from './views/loginView.js';
 
+const ADMIN_ONLY_VIEWS = ['dashboard', 'payments'];
 const ERP_PROTECTED_VIEWS = ['dashboard', 'resources', 'orders', 'payments', 'builder', 'worker', 'realestate'];
 
 class App {
@@ -27,6 +28,7 @@ class App {
     this.toastContainer = document.getElementById('toast-container');
     
     this.heroSlideIndex = 0;
+    this.initialTabTarget = 'tab-btn-admin-login';
     
     // Application always opens directly to the public Landing Page
     store.setView('landing');
@@ -72,14 +74,15 @@ class App {
       this.showToast(`Switched to ${isLight ? 'Light' : 'Dark'} Industrial Theme`, 'info');
     });
 
-    // Separate Main Header Login / Logout Button
+    // Main Header Login / Logout Button
     document.getElementById('btn-header-login-main')?.addEventListener('click', () => {
       if (store.isLoggedIn()) {
         store.logoutUser();
         this.updateNavUI();
         this.renderActiveView();
-        this.showToast('Logged out successfully. Application returned to Public Homepage.', 'info');
+        this.showToast('Logged out successfully.', 'info');
       } else {
+        this.initialTabTarget = 'tab-btn-admin-login';
         store.setView('login');
         this.updateNavUI();
         this.renderActiveView();
@@ -99,12 +102,18 @@ class App {
       link.addEventListener('click', (e) => {
         const view = e.currentTarget.dataset.view;
         if (view) {
-          // Strict Access Guard Check
+          // Unauthenticated Guard Check
           if (ERP_PROTECTED_VIEWS.includes(view) && !store.isLoggedIn()) {
             store.setView('login');
             this.updateNavUI();
             this.renderActiveView();
-            this.showToast('🔒 Restricted Access: Please log in or register to access ERP features!', 'warning');
+            this.showToast('🔒 Restricted Access: Please log in to enter ERP features!', 'warning');
+            return;
+          }
+
+          // Role-Based Access Control (Admin Only Views Guard)
+          if (ADMIN_ONLY_VIEWS.includes(view) && store.getRole() !== 'owner') {
+            this.showToast('🔒 Access Restricted: Executive Dashboard & Payments are reserved for Admin Managers (syamratnam123@gmail.com)', 'warning');
             return;
           }
 
@@ -141,13 +150,19 @@ class App {
 
     // Content Event Delegation
     this.contentContainer.addEventListener('click', async (e) => {
-      // Tab Switcher on Login/Register View (Admin Login, Admin Reg, User Auth)
-      if (e.target.id === 'tab-btn-admin-login') {
-        this.switchAuthTab('tab-btn-admin-login', 'auth-panel-admin-login');
+      // LANDING PAGE ENTER ADMIN PANEL BUTTON (OPENS LOGIN FOR CREDENTIALS INPUT)
+      if (e.target.closest('#btn-landing-enter-admin')) {
+        this.initialTabTarget = 'tab-btn-admin-login';
+        store.setView('login');
+        this.updateNavUI();
+        this.renderActiveView();
+        this.showToast('🔒 Admin Panel Access: Please enter your login credentials below', 'info');
         return;
       }
-      if (e.target.id === 'tab-btn-admin-reg') {
-        this.switchAuthTab('tab-btn-admin-reg', 'auth-panel-admin-reg');
+
+      // Tab Switcher on Login/Register View
+      if (e.target.id === 'tab-btn-admin-login') {
+        this.switchAuthTab('tab-btn-admin-login', 'auth-panel-admin-login');
         return;
       }
       if (e.target.id === 'tab-btn-user-auth') {
@@ -161,7 +176,7 @@ class App {
           const userProfile = await firebaseAuth.signInWithGoogle();
           this.updateUserHeaderUI();
           this.updateNavUI();
-          store.setView('dashboard');
+          store.setView('builder');
           this.renderActiveView();
           this.showToast(`🔥 Signed in with Google: Welcome ${userProfile.name}`, 'success');
         } catch (err) {
@@ -278,23 +293,14 @@ class App {
 
   updateUserHeaderUI() {
     const user = store.getCurrentUser();
-    const avatarElem = document.getElementById('header-user-avatar');
-    const nameElem = document.getElementById('header-user-name');
-    const roleElem = document.getElementById('header-user-role');
     const mainAuthBtn = document.getElementById('btn-header-login-main');
 
     if (user) {
-      if (avatarElem) avatarElem.textContent = user.avatar || '👤';
-      if (nameElem) nameElem.textContent = user.name;
-      if (roleElem) roleElem.textContent = user.roleLabel;
       if (mainAuthBtn) {
-        mainAuthBtn.innerHTML = '<span>🚪</span> Log Out';
+        mainAuthBtn.innerHTML = `<span>🚪</span> Log Out (${user.name})`;
         mainAuthBtn.className = 'btn btn-secondary btn-sm';
       }
     } else {
-      if (avatarElem) avatarElem.textContent = '🔒';
-      if (nameElem) nameElem.textContent = 'Guest User';
-      if (roleElem) roleElem.textContent = 'Not Logged In';
       if (mainAuthBtn) {
         mainAuthBtn.innerHTML = '<span>🔑</span> Log In / Register';
         mainAuthBtn.className = 'btn btn-primary btn-sm';
@@ -305,19 +311,26 @@ class App {
   updateNavUI() {
     const currentView = store.getView();
     const isLoggedIn = store.isLoggedIn();
+    const role = store.getRole();
     const topNav = document.getElementById('main-top-nav');
     const sidebar = document.getElementById('app-sidebar');
 
     const isPublicView = currentView === 'landing' || currentView === 'login';
 
-    // Top navbar is shown ONLY on public landing/login pages
     if (topNav) {
       topNav.style.display = isPublicView ? 'flex' : 'none';
     }
 
-    // Left sidebar ERP navigation component is shown ONLY AFTER SUCCESSFUL LOGIN into an ERP module!
     if (sidebar) {
       sidebar.style.display = (isLoggedIn && !isPublicView) ? 'flex' : 'none';
+
+      // Role Based Sidebar Item Restrictions (Admin vs Limited Users)
+      const isAdmin = role === 'owner';
+      const dashItem = document.getElementById('nav-item-dashboard');
+      const payItem = document.getElementById('nav-item-payments');
+
+      if (dashItem) dashItem.style.display = isAdmin ? 'block' : 'none';
+      if (payItem) payItem.style.display = isAdmin ? 'block' : 'none';
     }
 
     document.querySelectorAll('.nav-link').forEach(link => {
@@ -336,10 +349,19 @@ class App {
   renderActiveView() {
     const view = store.getView();
     const isLoggedIn = store.isLoggedIn();
+    const role = store.getRole();
 
-    // Strict Security Access Control: Guard ERP protected routes
+    // Guard 1: Must be Logged In for ERP views
     if (ERP_PROTECTED_VIEWS.includes(view) && !isLoggedIn) {
       store.setView('login');
+      this.renderActiveView();
+      return;
+    }
+
+    // Guard 2: Admin Only Views (Dashboard & Payments)
+    if (ADMIN_ONLY_VIEWS.includes(view) && role !== 'owner') {
+      store.setView('builder');
+      this.showToast('🔒 Access Restricted: Executive Dashboard is reserved for Admin Managers (syamratnam123@gmail.com)', 'warning');
       this.renderActiveView();
       return;
     }
@@ -380,12 +402,18 @@ class App {
 
     this.contentContainer.innerHTML = html;
     this.bindViewSpecificListeners();
+
+    if (view === 'login' && this.initialTabTarget) {
+      this.switchAuthTab(this.initialTabTarget, 'auth-panel-admin-login');
+    }
   }
 
   wrapWithFriendlyHeader(contentHtml, titleStr, descStr) {
     const user = store.getCurrentUser();
+    const isAdmin = user && user.role === 'owner';
+
     return `
-      <div style="background: linear-gradient(135deg, rgba(192, 74, 39, 0.12), var(--bg-surface-elevated)); border: 1px solid var(--bg-surface-border); border-left: 4px solid var(--primary-terracotta); border-radius: var(--radius-md); padding: 1rem 1.25rem; margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+      <div style="background: linear-gradient(135deg, rgba(192, 74, 39, 0.12), var(--bg-surface-elevated)); border: 1px solid var(--bg-surface-border); border-left: 4px solid ${isAdmin ? 'var(--accent-amber)' : 'var(--status-info)'}; border-radius: var(--radius-md); padding: 1rem 1.25rem; margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
         <div style="display: flex; align-items: center; gap: 0.85rem;">
           <span style="font-size: 1.8rem;">${user ? user.avatar : '🧱'}</span>
           <div>
@@ -393,13 +421,13 @@ class App {
               ${user ? user.welcomeMsg : 'Welcome to NSR Brick Enterprise!'}
             </div>
             <div style="font-size: 0.8rem; color: var(--text-muted);">
-              Firebase Authenticated as <strong>${user ? user.name : 'Guest'}</strong> (${user ? user.company : 'NSR Platform'})
+              Firebase Authenticated as <strong>${user ? user.name : 'Guest'}</strong> (${user ? user.roleLabel : 'Standard User'})
             </div>
           </div>
         </div>
 
         <button class="btn btn-secondary btn-sm" onclick="alert('🔥 Firebase Status: Auth & Firestore listeners active. Click sidebar menu options to navigate ERP modules.')">
-          🔥 Firebase Status: Active
+          🔥 Firebase Role: ${isAdmin ? '👑 FULL ADMIN CONTROL' : '👷‍♂️ LIMITED USER ACCESS'}
         </button>
       </div>
 
@@ -408,8 +436,8 @@ class App {
   }
 
   switchAuthTab(activeTabId, activePanelId) {
-    const tabs = ['tab-btn-admin-login', 'tab-btn-admin-reg', 'tab-btn-user-auth'];
-    const panels = ['auth-panel-admin-login', 'auth-panel-admin-reg', 'auth-panel-user'];
+    const tabs = ['tab-btn-admin-login', 'tab-btn-user-auth'];
+    const panels = ['auth-panel-admin-login', 'auth-panel-user'];
 
     tabs.forEach(tabId => {
       const tab = document.getElementById(tabId);
@@ -435,7 +463,7 @@ class App {
   }
 
   bindViewSpecificListeners() {
-    // ADMIN MANAGER LOGIN FORM SUBMIT (syamratnam123@gmail.com / Syam@1234)
+    // LOGIN FORM SUBMIT (Handles Admin Manager syamratnam123@gmail.com and Contractor logins)
     const adminLoginForm = document.getElementById('form-admin-login');
     if (adminLoginForm) {
       adminLoginForm.addEventListener('submit', async (e) => {
@@ -469,7 +497,7 @@ class App {
         }
 
         if (!isValid) {
-          this.showToast('⚠️ Please enter Admin Manager Username and Password.', 'warning');
+          this.showToast('⚠️ Please enter Email Address and Password.', 'warning');
           return;
         }
 
@@ -478,106 +506,22 @@ class App {
         adminLoginForm.reset();
         
         this.updateUserHeaderUI();
-        store.setView('dashboard');
-        this.updateNavUI();
-        this.renderActiveView();
-        this.showToast(`👑 Admin Manager Authenticated: Welcome ${newUser.name}!`, 'success');
+
+        if (newUser.role === 'owner') {
+          store.setView('dashboard');
+          this.updateNavUI();
+          this.renderActiveView();
+          this.showToast(`👑 Admin Manager Authenticated (FULL UNRESTRICTED ACCESS): Welcome ${newUser.name}!`, 'success');
+        } else {
+          store.setView('builder');
+          this.updateNavUI();
+          this.renderActiveView();
+          this.showToast(`👷‍♂️ Contractor Logged In: Welcome ${newUser.name}!`, 'info');
+        }
       });
     }
 
-    // ADMIN MANAGER REGISTRATION FORM SUBMIT
-    const adminRegForm = document.getElementById('form-admin-register');
-    if (adminRegForm) {
-      adminRegForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const nameElem = document.getElementById('areg-name');
-        const emailElem = document.getElementById('areg-email');
-        const passwordElem = document.getElementById('areg-password');
-        
-        const errName = document.getElementById('err-areg-name');
-        const errEmail = document.getElementById('err-areg-email');
-        const errPass = document.getElementById('err-areg-password');
-
-        const name = nameElem.value.trim();
-        const email = emailElem.value.trim();
-        const password = passwordElem.value.trim();
-        const company = document.getElementById('areg-company').value.trim();
-
-        let isValid = true;
-
-        if (!name) {
-          nameElem.style.borderColor = 'var(--status-danger)';
-          if (errName) errName.style.display = 'block';
-          isValid = false;
-        } else {
-          nameElem.style.borderColor = 'var(--bg-surface-border)';
-          if (errName) errName.style.display = 'none';
-        }
-
-        if (!email) {
-          emailElem.style.borderColor = 'var(--status-danger)';
-          if (errEmail) errEmail.style.display = 'block';
-          isValid = false;
-        } else {
-          emailElem.style.borderColor = 'var(--bg-surface-border)';
-          if (errEmail) errEmail.style.display = 'none';
-        }
-
-        if (!password) {
-          passwordElem.style.borderColor = 'var(--status-danger)';
-          if (errPass) errPass.style.display = 'block';
-          isValid = false;
-        } else {
-          passwordElem.style.borderColor = 'var(--bg-surface-border)';
-          if (errPass) errPass.style.display = 'none';
-        }
-
-        if (!isValid) {
-          this.showToast('⚠️ Please complete all required Admin registration fields (*).', 'warning');
-          return;
-        }
-
-        const newUser = await firebaseAuth.registerWithEmail(name, email, password, 'owner', company);
-        
-        adminRegForm.reset();
-
-        this.updateUserHeaderUI();
-        store.setView('dashboard');
-        this.updateNavUI();
-        this.renderActiveView();
-        this.showToast(`🔥 Admin Manager Account Registered & Pushed to Firebase: Welcome, ${newUser.name}!`, 'success');
-      });
-    }
-
-    // Account Login Form Submit with Required Fields Validation
-    const loginForm = document.getElementById('form-login-account');
-    if (loginForm) {
-      loginForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const emailElem = document.getElementById('login-email');
-        const passwordElem = document.getElementById('login-password');
-
-        const email = emailElem.value.trim();
-        const password = passwordElem.value.trim();
-
-        if (!email || !password) {
-          this.showToast('⚠️ Please enter both Email Address and Password to log in.', 'warning');
-          return;
-        }
-
-        const newUser = await firebaseAuth.signInWithEmail(email, password);
-        
-        loginForm.reset();
-        
-        this.updateUserHeaderUI();
-        store.setView('dashboard');
-        this.updateNavUI();
-        this.renderActiveView();
-        this.showToast(`🔥 Logged In Successfully: Welcome ${newUser.name}!`, 'success');
-      });
-    }
-
-    // Account Registration Form Submit with Required Fields Validation
+    // REGISTRATION FORM SUBMIT
     const regForm = document.getElementById('form-register-account');
     if (regForm) {
       regForm.addEventListener('submit', async (e) => {
@@ -585,66 +529,30 @@ class App {
         const nameElem = document.getElementById('reg-name');
         const emailElem = document.getElementById('reg-email');
         const passwordElem = document.getElementById('reg-password');
-        
-        const errName = document.getElementById('err-reg-name');
-        const errEmail = document.getElementById('err-reg-email');
-        const errPass = document.getElementById('err-reg-password');
+        const role = document.getElementById('reg-role')?.value || 'builder';
+        const company = document.getElementById('reg-company')?.value.trim() || '';
 
-        const name = nameElem.value.trim();
-        const email = emailElem.value.trim();
-        const password = passwordElem.value.trim();
-        const role = document.getElementById('reg-role').value;
-        const company = document.getElementById('reg-company').value.trim();
+        const name = nameElem ? nameElem.value.trim() : '';
+        const email = emailElem ? emailElem.value.trim() : '';
+        const password = passwordElem ? passwordElem.value.trim() : '';
 
-        let isValid = true;
-
-        if (!name) {
-          nameElem.style.borderColor = 'var(--status-danger)';
-          if (errName) errName.style.display = 'block';
-          isValid = false;
-        } else {
-          nameElem.style.borderColor = 'var(--bg-surface-border)';
-          if (errName) errName.style.display = 'none';
-        }
-
-        if (!email) {
-          emailElem.style.borderColor = 'var(--status-danger)';
-          if (errEmail) errEmail.style.display = 'block';
-          isValid = false;
-        } else {
-          emailElem.style.borderColor = 'var(--bg-surface-border)';
-          if (errEmail) errEmail.style.display = 'none';
-        }
-
-        if (!password) {
-          passwordElem.style.borderColor = 'var(--status-danger)';
-          if (errPass) errPass.style.display = 'block';
-          isValid = false;
-        } else {
-          passwordElem.style.borderColor = 'var(--bg-surface-border)';
-          if (errPass) errPass.style.display = 'none';
-        }
-
-        if (!isValid) {
-          this.showToast('⚠️ Please complete all required fields (*).', 'warning');
+        if (!name || !email || !password) {
+          this.showToast('⚠️ Please fill out all required fields (*)', 'warning');
           return;
         }
 
         const newUser = await firebaseAuth.registerWithEmail(name, email, password, role, company);
         
-        // Reset form fields
         regForm.reset();
-
+        
         this.updateUserHeaderUI();
         
-        if (role === 'owner') store.setView('dashboard');
-        else if (role === 'builder') store.setView('builder');
-        else if (role === 'worker') store.setView('worker');
-        else if (role === 'realestate') store.setView('realestate');
+        if (newUser.role === 'owner') store.setView('dashboard');
+        else store.setView('builder');
 
         this.updateNavUI();
         this.renderActiveView();
-        this.showToast(`🔥 Registered & Logged In Successfully: Welcome, ${newUser.name}!`, 'success');
+        this.showToast(`🔥 Account Registered & Pushed to Firebase: Welcome ${newUser.name}!`, 'success');
       });
     }
 

@@ -27,7 +27,7 @@
         <div class="brand-icon">🧱</div>
         <div class="brand-text">
           <span class="brand-title">NSR Brick Enterprise</span>
-          <span class="brand-tagline">Clay Brick ERP & CRM Platform</span>
+          <span class="brand-tagline">Firebase ERP & CRM Platform</span>
         </div>
       </a>
 
@@ -39,24 +39,15 @@
         <button class="btn-scroll-contact" id="nav-top-contact">Contact</button>
       </nav>
 
-      <!-- Active User Profile & Header Controls -->
-      <div style="display:flex; align-items:center; gap:0.6rem;">
+      <!-- Single Header Login Button (Admin Login removed from Navbar) -->
+      <div style="display:flex; align-items:center; gap:0.75rem;">
         
         <!-- Theme Toggle -->
         <button class="btn btn-secondary btn-sm" id="btn-theme-toggle" title="Toggle Light/Dark Theme">
           <span id="theme-icon">🌙</span>
         </button>
 
-        <!-- Active User Badge -->
-        <div id="user-header-profile" style="display:flex; align-items:center; gap:0.6rem; background:var(--bg-dark); padding:0.4rem 0.85rem; border-radius:var(--radius-lg); border:1px solid var(--bg-surface-border);">
-          <span id="header-user-avatar" style="font-size:1.3rem;">🔒</span>
-          <div style="display:flex; flex-direction:column;">
-            <span id="header-user-name" style="font-weight:700; font-size:0.82rem; color:var(--text-main);">Guest User</span>
-            <span id="header-user-role" style="font-size:0.7rem; color:var(--text-muted); font-weight:600;">Not Logged In</span>
-          </div>
-        </div>
-
-        <!-- Main Login / Logout Button -->
+        <!-- Single Main Login / Logout Button -->
         <button class="btn btn-primary btn-sm" id="btn-header-login-main">
           <span>🔑</span> Log In / Register
         </button>
@@ -106,13 +97,13 @@
               Public Homepage
             </button>
           </li>
-          <li class="nav-item">
+          <li class="nav-item" id="nav-item-dashboard">
             <button class="nav-link active" data-view="dashboard" id="nav-dashboard">
               <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
-              Executive Dashboard
+              Executive Dashboard (Admin Only)
             </button>
           </li>
-          <li class="nav-item">
+          <li class="nav-item" id="nav-item-resources">
             <button class="nav-link" data-view="resources" id="nav-resources">
               <svg viewBox="0 0 24 24"><path d="M20 13V6a2 2 0 0-2-2H6a2 2 0 0-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 00-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/></svg>
               Resources & Stock
@@ -125,10 +116,10 @@
               <span class="badge-count" id="sidebar-orders-badge">3</span>
             </button>
           </li>
-          <li class="nav-item">
+          <li class="nav-item" id="nav-item-payments">
             <button class="nav-link" data-view="payments" id="nav-payments">
               <svg viewBox="0 0 24 24"><path d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-              Payments & Ledger
+              Payments & Ledger (Admin Only)
             </button>
           </li>
         </ul>

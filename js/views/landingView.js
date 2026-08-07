@@ -26,53 +26,38 @@ export function renderLandingView() {
         </p>
 
         <!-- Product Quality Spec Badges Bar -->
-        <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 2rem; background: rgba(15, 18, 21, 0.75); border: 1px solid var(--primary-terracotta); border-radius: var(--radius-md); padding: 1rem; backdrop-filter: blur(6px);">
-          <div style="display: flex; align-items: center; gap: 0.5rem;">
-            <span style="font-size: 1.5rem;">💪</span>
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1.5rem; background: rgba(15, 18, 21, 0.85); border: 1px solid var(--primary-terracotta); border-radius: var(--radius-md); padding: 1.25rem; backdrop-filter: blur(8px);">
+          <div style="display: flex; align-items: center; gap: 0.6rem;">
+            <span style="font-size: 1.6rem;">💪</span>
             <div>
-              <div style="font-weight: 800; font-size: 0.95rem; color: var(--accent-gold);">3,850+ PSI</div>
+              <div style="font-weight: 800; font-size: 1rem; color: var(--accent-gold);">3,850+ PSI</div>
               <div style="font-size: 0.72rem; color: var(--text-muted);">Compressive Strength (28.9 MPa)</div>
             </div>
           </div>
 
-          <div style="display: flex; align-items: center; gap: 0.5rem; border-left: 1px solid var(--bg-surface-border); padding-left: 1rem;">
-            <span style="font-size: 1.5rem;">🔥</span>
+          <div style="display: flex; align-items: center; gap: 0.6rem; border-left: 1px solid var(--bg-surface-border); padding-left: 1rem;">
+            <span style="font-size: 1.6rem;">🔥</span>
             <div>
-              <div style="font-weight: 800; font-size: 0.95rem; color: var(--accent-amber);">1,050°C Fire Fired</div>
+              <div style="font-weight: 800; font-size: 1rem; color: var(--accent-amber);">1,050°C Fire Fired</div>
               <div style="font-size: 0.72rem; color: var(--text-muted);">High Temperature Tunnel Kiln</div>
             </div>
           </div>
 
-          <div style="display: flex; align-items: center; gap: 0.5rem; border-left: 1px solid var(--bg-surface-border); padding-left: 1rem;">
-            <span style="font-size: 1.5rem;">🌧️</span>
+          <div style="display: flex; align-items: center; gap: 0.6rem; border-left: 1px solid var(--bg-surface-border); padding-left: 1rem;">
+            <span style="font-size: 1.6rem;">🌧️</span>
             <div>
-              <div style="font-weight: 800; font-size: 0.95rem; color: var(--status-info);">< 6% Water Absorption</div>
+              <div style="font-weight: 800; font-size: 1rem; color: var(--status-info);">< 6% Water Absorption</div>
               <div style="font-size: 0.72rem; color: var(--text-muted);">Monsoon Dampness Resistant</div>
             </div>
           </div>
 
-          <div style="display: flex; align-items: center; gap: 0.5rem; border-left: 1px solid var(--bg-surface-border); padding-left: 1rem;">
-            <span style="font-size: 1.5rem;">🌿</span>
+          <div style="display: flex; align-items: center; gap: 0.6rem; border-left: 1px solid var(--bg-surface-border); padding-left: 1rem;">
+            <span style="font-size: 1.6rem;">🌿</span>
             <div>
-              <div style="font-weight: 800; font-size: 0.95rem; color: var(--status-success);">ISO 14001 Eco</div>
+              <div style="font-weight: 800; font-size: 1rem; color: var(--status-success);">ISO 14001 Eco</div>
               <div style="font-size: 0.72rem; color: var(--text-muted);">Nil Efflorescence Class I</div>
             </div>
           </div>
-        </div>
-
-        <div class="hero-ctas">
-          <button class="btn btn-primary btn-lg btn-scroll-quote">
-            📋 Get a Free Quote
-          </button>
-          <button class="btn btn-secondary btn-lg nav-link-trigger" data-view="builder">
-            📐 Brick Quantity Calculator
-          </button>
-          <button class="btn btn-outline-terracotta btn-lg btn-scroll-products">
-            🧱 Explore Raw & Fire Bricks
-          </button>
-          <button class="btn btn-secondary btn-lg nav-link-trigger" data-view="login">
-            🔑 Admin & User Login
-          </button>
         </div>
       </div>
     </div>
@@ -90,12 +75,12 @@ export function renderLandingView() {
             Enterprise Admin Control Panel
           </h2>
           <p style="color: var(--text-muted); font-size: 0.92rem; line-height: 1.6;">
-            Executive control panel for business managers: monitor 1,050°C tunnel kiln firing telemetry, raw clay quarry reserves, contractor freight dispatches, customer payments ledger, and live Firebase Firestore database synchronization.
+            Executive control panel for Admin Managers: monitor 1,050°C tunnel kiln firing telemetry, raw clay quarry reserves, contractor freight dispatches, customer payments ledger, and live Firebase Firestore database synchronization.
           </p>
         </div>
 
         <div>
-          <button class="btn btn-primary btn-lg nav-link-trigger" data-view="dashboard" style="padding: 0.9rem 2rem; font-size: 1rem; box-shadow: var(--shadow-lg);">
+          <button class="btn btn-primary btn-lg" id="btn-landing-enter-admin" style="padding: 0.9rem 2rem; font-size: 1rem; box-shadow: var(--shadow-lg); font-weight: 800; background: linear-gradient(135deg, var(--primary-terracotta), var(--accent-amber)); border: none;">
             👑 Enter Admin Panel (Executive ERP)
           </button>
         </div>
