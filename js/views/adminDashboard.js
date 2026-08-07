@@ -17,10 +17,13 @@ export function renderAdminDashboard() {
   return `
     <div class="view-header">
       <div class="view-title-group">
-        <h1>NSR Kiln Executive Dashboard (ERP & CRM)</h1>
+        <h1>👑 NSR Executive ERP Dashboard</h1>
         <p>Real-time telemetry on raw clay stock, kiln firing chambers, dispatch logistics & financial health</p>
       </div>
       <div class="view-actions">
+        <button class="btn btn-secondary btn-sm" id="btn-open-firebase-config" title="Configure Live Firebase Credentials">
+          <span>🔥</span> Firebase Config
+        </button>
         <button class="btn btn-secondary btn-sm" id="btn-restock-quick">
           <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 4v16m-8-8h16"/></svg>
           Restock Materials

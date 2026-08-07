@@ -4,8 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>NSR Brick Enterprise - Clay Brick Business Management ERP & CRM</title>
-  <meta name="description" content="Enterprise Clay Brick Business Management Application for brick manufacturers, construction builders, civil engineers, architects, real estate developers, and logistics managers. ERP + CRM + Inventory + Logistics + Finance platform.">
+  <meta name="description" content="Enterprise Clay Brick Business Management Application for brick manufacturers, construction builders, civil engineers, architects, real estate developers, and logistics managers. Integrated with Firebase Authentication, Firestore Database, Storage, and Cloud Messaging.">
   
+  <!-- Firebase SDK Web Compat Scripts (v10/v9) -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging-compat.js"></script>
+
   <!-- CSS Design System -->
   <link rel="stylesheet" href="./styles/main.css">
   <link rel="stylesheet" href="./styles/components.css">
@@ -25,32 +31,34 @@
         </div>
       </a>
 
-      <!-- Landing Page Public Top Navigation Bar (Hidden when logged into ERP modules) -->
+      <!-- Public Homepage Top Navigation Links -->
       <nav class="main-nav" id="main-top-nav">
         <button class="nav-link-trigger active" data-view="landing" id="nav-top-home">Home</button>
         <button class="btn-scroll-products" id="nav-top-products">Products</button>
         <button class="btn-scroll-quote" id="nav-top-quote">Get Quote</button>
         <button class="btn-scroll-contact" id="nav-top-contact">Contact</button>
-        <button class="nav-link-trigger" data-view="login" id="nav-top-login">Login / Portals</button>
       </nav>
 
       <!-- Active User Profile & Header Controls -->
-      <div style="display:flex; align-items:center; gap:0.75rem;">
+      <div style="display:flex; align-items:center; gap:0.6rem;">
         
+        <!-- Theme Toggle -->
         <button class="btn btn-secondary btn-sm" id="btn-theme-toggle" title="Toggle Light/Dark Theme">
           <span id="theme-icon">🌙</span>
         </button>
 
+        <!-- Active User Badge -->
         <div id="user-header-profile" style="display:flex; align-items:center; gap:0.6rem; background:var(--bg-dark); padding:0.4rem 0.85rem; border-radius:var(--radius-lg); border:1px solid var(--bg-surface-border);">
-          <span id="header-user-avatar" style="font-size:1.3rem;">👑</span>
+          <span id="header-user-avatar" style="font-size:1.3rem;">🔒</span>
           <div style="display:flex; flex-direction:column;">
-            <span id="header-user-name" style="font-weight:700; font-size:0.82rem; color:var(--text-main);">N.S. Reddy</span>
-            <span id="header-user-role" style="font-size:0.7rem; color:var(--accent-amber); font-weight:600;">Business Owner</span>
+            <span id="header-user-name" style="font-weight:700; font-size:0.82rem; color:var(--text-main);">Guest User</span>
+            <span id="header-user-role" style="font-size:0.7rem; color:var(--text-muted); font-weight:600;">Not Logged In</span>
           </div>
         </div>
 
-        <button class="btn btn-secondary btn-sm" id="btn-header-login-switch">
-          <span>🔄</span> Switch User / Logout
+        <!-- Main Login / Logout Button -->
+        <button class="btn btn-primary btn-sm" id="btn-header-login-main">
+          <span>🔑</span> Log In / Register
         </button>
 
       </div>
@@ -61,6 +69,10 @@
   <!-- Top Telemetry Status Bar -->
   <div class="top-status-bar">
     <div class="top-status-container">
+      <div class="status-pill">
+        <span class="indicator-dot online"></span>
+        Firebase Status: <strong>🔥 Auth & Firestore Connected</strong>
+      </div>
       <div class="status-pill">
         <span class="indicator-dot online"></span>
         NSR Kiln Telemetry: <strong>3 Active Firing (1,050°C)</strong>
@@ -83,8 +95,8 @@
   <!-- Main Application Body Layout -->
   <div class="app-body">
     
-    <!-- Left Sidebar Menu (ERP & CRM Navigation Component - SHOWN ONLY WHEN LOGGED IN) -->
-    <aside class="app-sidebar" id="app-sidebar">
+    <!-- Left Sidebar Menu (ERP Component - SHOWN ONLY WHEN LOGGED IN) -->
+    <aside class="app-sidebar" id="app-sidebar" style="display: none;">
       <div>
         <div class="nav-section-title">NSR ERP Modules</div>
         <ul class="nav-list">
@@ -102,7 +114,7 @@
           </li>
           <li class="nav-item">
             <button class="nav-link" data-view="resources" id="nav-resources">
-              <svg viewBox="0 0 24 24"><path d="M20 13V6a2 2 0 0-2-2H6a2 2 0 0-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/></svg>
+              <svg viewBox="0 0 24 24"><path d="M20 13V6a2 2 0 0-2-2H6a2 2 0 0-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 00-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/></svg>
               Resources & Stock
             </button>
           </li>
@@ -144,9 +156,9 @@
             </button>
           </li>
           <li class="nav-item" style="margin-top:1rem; border-top:1px solid var(--bg-surface-border); padding-top:0.5rem;">
-            <button class="nav-link" data-view="login" id="nav-login">
+            <button class="nav-link" id="nav-sidebar-logout">
               <svg viewBox="0 0 24 24"><path d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
-              Switch Role / Logout
+              Log Out of Account
             </button>
           </li>
         </ul>

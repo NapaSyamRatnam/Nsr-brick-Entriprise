@@ -1,6 +1,10 @@
-/* NSR Brick Enterprise - Core ERP & CRM Application Controller */
+/* NSR Brick Enterprise - Core ERP & CRM Application Controller with Strict Auth Guard */
 
 import { store } from './store.js';
+import { getFirebaseConfig, saveFirebaseConfig } from './firebaseConfig.js';
+import { firebaseAuth } from './firebaseAuth.js';
+import { firebaseFirestore } from './firebaseFirestore.js';
+
 import { renderLandingView } from './views/landingView.js';
 import { renderAdminDashboard } from './views/adminDashboard.js';
 import { renderResourceTracker } from './views/resourceTracker.js';
@@ -10,6 +14,8 @@ import { renderBuilderPortal } from './views/builderPortal.js';
 import { renderWorkerPortal } from './views/workerPortal.js';
 import { renderRealEstatePortal } from './views/realEstatePortal.js';
 import { renderLoginView } from './views/loginView.js';
+
+const ERP_PROTECTED_VIEWS = ['dashboard', 'resources', 'orders', 'payments', 'builder', 'worker', 'realestate'];
 
 class App {
   constructor() {
@@ -21,6 +27,10 @@ class App {
     this.toastContainer = document.getElementById('toast-container');
     
     this.heroSlideIndex = 0;
+    
+    // Application always opens directly to the public Landing Page
+    store.setView('landing');
+    
     this.init();
   }
 
@@ -41,9 +51,19 @@ class App {
       this.updateNavUI();
       this.updateUserHeaderUI();
     });
+
+    // Observe Firebase Auth state
+    firebaseAuth.initObserver((user) => {
+      this.showToast(`🔥 Firebase Auth: Session active for ${user.email}`, 'info');
+    });
   }
 
   bindGlobalEvents() {
+    // Firebase Config Modal Button
+    document.getElementById('btn-open-firebase-config')?.addEventListener('click', () => {
+      this.openFirebaseConfigModal();
+    });
+
     // Theme Toggle (Light/Dark)
     document.getElementById('btn-theme-toggle')?.addEventListener('click', () => {
       document.body.classList.toggle('light-theme');
@@ -52,12 +72,26 @@ class App {
       this.showToast(`Switched to ${isLight ? 'Light' : 'Dark'} Industrial Theme`, 'info');
     });
 
-    // Header Login/Account Switch Button
-    document.getElementById('btn-header-login-switch')?.addEventListener('click', () => {
-      store.setView('login');
+    // Separate Main Header Login / Logout Button
+    document.getElementById('btn-header-login-main')?.addEventListener('click', () => {
+      if (store.isLoggedIn()) {
+        store.logoutUser();
+        this.updateNavUI();
+        this.renderActiveView();
+        this.showToast('Logged out successfully. Application returned to Public Homepage.', 'info');
+      } else {
+        store.setView('login');
+        this.updateNavUI();
+        this.renderActiveView();
+      }
+    });
+
+    // Sidebar Logout Button
+    document.getElementById('nav-sidebar-logout')?.addEventListener('click', () => {
+      store.logoutUser();
       this.updateNavUI();
       this.renderActiveView();
-      this.showToast('Select an Admin or User profile to authenticate', 'info');
+      this.showToast('Logged out successfully.', 'info');
     });
 
     // Navigation Links (Sidebar & Topbar)
@@ -65,6 +99,15 @@ class App {
       link.addEventListener('click', (e) => {
         const view = e.currentTarget.dataset.view;
         if (view) {
+          // Strict Access Guard Check
+          if (ERP_PROTECTED_VIEWS.includes(view) && !store.isLoggedIn()) {
+            store.setView('login');
+            this.updateNavUI();
+            this.renderActiveView();
+            this.showToast('🔒 Restricted Access: Please log in or register to access ERP features!', 'warning');
+            return;
+          }
+
           store.setView(view);
           this.updateNavUI();
           this.renderActiveView();
@@ -97,22 +140,61 @@ class App {
     });
 
     // Content Event Delegation
-    this.contentContainer.addEventListener('click', (e) => {
-      // 1-Click Demo Profile Login
-      const demoCard = e.target.closest('.demo-login-card');
-      if (demoCard) {
-        const role = demoCard.dataset.role;
-        const loggedUser = store.loginAsDemoProfile(role);
-        this.updateUserHeaderUI();
-        this.updateNavUI();
-        this.renderActiveView();
-        this.showToast(`Firebase Authenticated: ${loggedUser.name} (${loggedUser.roleLabel})`, 'success');
+    this.contentContainer.addEventListener('click', async (e) => {
+      // Tab Switcher on Login/Register View
+      if (e.target.id === 'tab-btn-login') {
+        document.getElementById('tab-btn-login').classList.add('active');
+        document.getElementById('tab-btn-login').style.borderBottomColor = 'var(--primary-terracotta)';
+        document.getElementById('tab-btn-login').style.color = 'var(--accent-amber)';
+
+        document.getElementById('tab-btn-register').classList.remove('active');
+        document.getElementById('tab-btn-register').style.borderBottomColor = 'transparent';
+        document.getElementById('tab-btn-register').style.color = 'var(--text-muted)';
+
+        document.getElementById('auth-panel-login').style.display = 'block';
+        document.getElementById('auth-panel-register').style.display = 'none';
+        return;
+      }
+
+      if (e.target.id === 'tab-btn-register') {
+        document.getElementById('tab-btn-register').classList.add('active');
+        document.getElementById('tab-btn-register').style.borderBottomColor = 'var(--primary-terracotta)';
+        document.getElementById('tab-btn-register').style.color = 'var(--accent-amber)';
+
+        document.getElementById('tab-btn-login').classList.remove('active');
+        document.getElementById('tab-btn-login').style.borderBottomColor = 'transparent';
+        document.getElementById('tab-btn-login').style.color = 'var(--text-muted)';
+
+        document.getElementById('auth-panel-login').style.display = 'none';
+        document.getElementById('auth-panel-register').style.display = 'block';
+        return;
+      }
+
+      // Google Sign-In Button on Login View
+      if (e.target.closest('#btn-google-login')) {
+        try {
+          const userProfile = await firebaseAuth.signInWithGoogle();
+          this.updateUserHeaderUI();
+          this.updateNavUI();
+          store.setView('dashboard');
+          this.renderActiveView();
+          this.showToast(`🔥 Signed in with Google: Welcome ${userProfile.name}`, 'success');
+        } catch (err) {
+          this.showToast('Google login cancelled or pending configuration', 'warning');
+        }
         return;
       }
 
       // Product Buy Now Button
       const buyBtn = e.target.closest('.btn-product-buy');
       if (buyBtn) {
+        if (!store.isLoggedIn()) {
+          store.setView('login');
+          this.updateNavUI();
+          this.renderActiveView();
+          this.showToast('🔒 Please log in or register to place orders!', 'warning');
+          return;
+        }
         const brickName = buyBtn.dataset.brickName;
         const price = parseFloat(buyBtn.dataset.price);
         this.openCreateOrderModal({ brickType: brickName, unitPrice: price });
@@ -122,6 +204,13 @@ class App {
       // Product Get Quote Button
       const quoteBtn = e.target.closest('.btn-product-quote');
       if (quoteBtn) {
+        if (!store.isLoggedIn()) {
+          store.setView('login');
+          this.updateNavUI();
+          this.renderActiveView();
+          this.showToast('🔒 Please log in or register to request quotes!', 'warning');
+          return;
+        }
         const brickName = quoteBtn.dataset.brickName;
         this.openCreateOrderModal({ brickType: brickName, quantity: 20000 });
         return;
@@ -170,6 +259,13 @@ class App {
 
       // Calculator Convert to Order
       if (e.target.closest('#btn-calc-place-order')) {
+        if (!store.isLoggedIn()) {
+          store.setView('login');
+          this.updateNavUI();
+          this.renderActiveView();
+          this.showToast('🔒 Please log in or register to place bulk estimator orders!', 'warning');
+          return;
+        }
         this.handleCalculatorToOrder();
         return;
       }
@@ -200,32 +296,45 @@ class App {
     const avatarElem = document.getElementById('header-user-avatar');
     const nameElem = document.getElementById('header-user-name');
     const roleElem = document.getElementById('header-user-role');
+    const mainAuthBtn = document.getElementById('btn-header-login-main');
 
     if (user) {
-      if (avatarElem) avatarElem.textContent = user.avatar;
+      if (avatarElem) avatarElem.textContent = user.avatar || '👤';
       if (nameElem) nameElem.textContent = user.name;
       if (roleElem) roleElem.textContent = user.roleLabel;
+      if (mainAuthBtn) {
+        mainAuthBtn.innerHTML = '<span>🚪</span> Log Out';
+        mainAuthBtn.className = 'btn btn-secondary btn-sm';
+      }
+    } else {
+      if (avatarElem) avatarElem.textContent = '🔒';
+      if (nameElem) nameElem.textContent = 'Guest User';
+      if (roleElem) roleElem.textContent = 'Not Logged In';
+      if (mainAuthBtn) {
+        mainAuthBtn.innerHTML = '<span>🔑</span> Log In / Register';
+        mainAuthBtn.className = 'btn btn-primary btn-sm';
+      }
     }
   }
 
   updateNavUI() {
     const currentView = store.getView();
+    const isLoggedIn = store.isLoggedIn();
     const topNav = document.getElementById('main-top-nav');
     const sidebar = document.getElementById('app-sidebar');
 
     const isPublicView = currentView === 'landing' || currentView === 'login';
 
-    // Top landing navbar is shown ONLY on public landing/login pages
+    // Top navbar is shown ONLY on public landing/login pages
     if (topNav) {
       topNav.style.display = isPublicView ? 'flex' : 'none';
     }
 
-    // Left sidebar component with all ERP module buttons is shown ONLY after user/admin login
+    // Left sidebar ERP navigation component is shown ONLY AFTER SUCCESSFUL LOGIN into an ERP module!
     if (sidebar) {
-      sidebar.style.display = isPublicView ? 'none' : 'flex';
+      sidebar.style.display = (isLoggedIn && !isPublicView) ? 'flex' : 'none';
     }
 
-    // Update Sidebar active links
     document.querySelectorAll('.nav-link').forEach(link => {
       if (link.dataset.view === currentView) {
         link.classList.add('active');
@@ -241,6 +350,15 @@ class App {
 
   renderActiveView() {
     const view = store.getView();
+    const isLoggedIn = store.isLoggedIn();
+
+    // Strict Security Access Control: Guard ERP protected routes
+    if (ERP_PROTECTED_VIEWS.includes(view) && !isLoggedIn) {
+      store.setView('login');
+      this.renderActiveView();
+      return;
+    }
+
     let html = '';
 
     switch (view) {
@@ -290,13 +408,13 @@ class App {
               ${user ? user.welcomeMsg : 'Welcome to NSR Brick Enterprise!'}
             </div>
             <div style="font-size: 0.8rem; color: var(--text-muted);">
-              Authenticated as <strong>${user ? user.name : 'Guest'}</strong> (${user ? user.company : 'NSR Platform'})
+              Firebase Authenticated as <strong>${user ? user.name : 'Guest'}</strong> (${user ? user.company : 'NSR Platform'})
             </div>
           </div>
         </div>
 
-        <button class="btn btn-secondary btn-sm" onclick="alert('💡 Help Guide: Click sidebar menu options to navigate ERP modules. Use the Brick Calculator for project cost estimates.')">
-          💡 Module Guide
+        <button class="btn btn-secondary btn-sm" onclick="alert('🔥 Firebase Status: Auth & Firestore listeners active. Click sidebar menu options to navigate ERP modules.')">
+          🔥 Firebase Status: Active
         </button>
       </div>
 
@@ -305,31 +423,53 @@ class App {
   }
 
   bindViewSpecificListeners() {
-    // Landing Page Inquiry Form Submit
-    const landingForm = document.getElementById('landing-inquiry-form');
-    if (landingForm) {
-      landingForm.addEventListener('submit', (e) => {
+    // Account Login Form Submit (Clean Inputs)
+    const loginForm = document.getElementById('form-login-account');
+    if (loginForm) {
+      loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const name = document.getElementById('inq-name').value;
-        const phone = document.getElementById('inq-phone').value;
-        const qty = document.getElementById('inq-qty').value;
+        const email = document.getElementById('login-email').value.trim();
+        const password = document.getElementById('login-password').value.trim();
+
+        if (!email || !password) {
+          this.showToast('Please enter both email and password', 'warning');
+          return;
+        }
+
+        const newUser = await firebaseAuth.signInWithEmail(email, password);
         
-        this.showToast(`Firebase Cloud Message: Quote request of ${qty} bricks received for ${name} (${phone})!`, 'success');
-        landingForm.reset();
+        // Reset form fields
+        loginForm.reset();
+        
+        this.updateUserHeaderUI();
+        store.setView('dashboard');
+        this.updateNavUI();
+        this.renderActiveView();
+        this.showToast(`🔥 Logged In Successfully: Welcome ${newUser.name}!`, 'success');
       });
     }
 
-    // Custom Login Form Submit
-    const regForm = document.getElementById('form-register-user');
+    // Account Registration Form Submit (Clean Inputs)
+    const regForm = document.getElementById('form-register-account');
     if (regForm) {
-      regForm.addEventListener('submit', (e) => {
+      regForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const name = document.getElementById('reg-name').value;
-        const email = document.getElementById('reg-email').value;
+        const name = document.getElementById('reg-name').value.trim();
+        const email = document.getElementById('reg-email').value.trim();
+        const password = document.getElementById('reg-password').value.trim();
         const role = document.getElementById('reg-role').value;
-        const company = document.getElementById('reg-company').value;
+        const company = document.getElementById('reg-company').value.trim();
 
-        const newUser = store.registerUser(name, email, role, company);
+        if (!name || !email || !password) {
+          this.showToast('Please complete all required fields', 'warning');
+          return;
+        }
+
+        const newUser = await firebaseAuth.registerWithEmail(name, email, password, role, company);
+        
+        // Reset form fields
+        regForm.reset();
+
         this.updateUserHeaderUI();
         
         if (role === 'owner') store.setView('dashboard');
@@ -339,7 +479,22 @@ class App {
 
         this.updateNavUI();
         this.renderActiveView();
-        this.showToast(`Firebase Auth Success! Welcome, ${newUser.name}`, 'success');
+        this.showToast(`🔥 Registered & Logged In Successfully: Welcome, ${newUser.name}!`, 'success');
+      });
+    }
+
+    // Landing Page Inquiry Form Submit
+    const landingForm = document.getElementById('landing-inquiry-form');
+    if (landingForm) {
+      landingForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const name = document.getElementById('inq-name').value;
+        const phone = document.getElementById('inq-phone').value;
+        const qty = document.getElementById('inq-qty').value;
+        
+        await firebaseFirestore.addOrderToFirestore({ clientName: name, phone, quantity: qty });
+        this.showToast(`🔥 Firebase Cloud Message: Quote request of ${qty} bricks saved for ${name}!`, 'success');
+        landingForm.reset();
       });
     }
 
@@ -352,8 +507,9 @@ class App {
         const qty = document.getElementById('ws-quantity').value;
         const brick = document.getElementById('ws-brick-type').value;
 
-        store.createQuickSiteOrder(site, qty, brick);
-        this.showToast(`Urgent express dispatch of ${qty} bricks queued for ${site}!`, 'success');
+        const order = store.createQuickSiteOrder(site, qty, brick);
+        firebaseFirestore.addOrderToFirestore(order);
+        this.showToast(`🔥 Firebase Firestore: Urgent re-supply order of ${qty} bricks saved for ${site}!`, 'success');
         store.setView('orders');
         this.updateNavUI();
         this.renderActiveView();
@@ -362,6 +518,67 @@ class App {
 
     this.recalculateBrickEstimates();
     this.recalculateRealEstateEstimates();
+  }
+
+  openFirebaseConfigModal() {
+    const currentConfig = getFirebaseConfig();
+
+    const bodyHtml = `
+      <div>
+        <p style="font-size:0.88rem; color:var(--text-muted); margin-bottom:1rem;">
+          Enter your live Firebase project credentials below to link Authentication, Firestore Database, and Messaging:
+        </p>
+
+        <form id="form-fb-config">
+          <div class="form-group">
+            <label class="form-label">Firebase API Key</label>
+            <input type="text" id="fb-apiKey" class="form-control" value="${currentConfig.apiKey || ''}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Auth Domain</label>
+            <input type="text" id="fb-authDomain" class="form-control" value="${currentConfig.authDomain || ''}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Project ID</label>
+            <input type="text" id="fb-projectId" class="form-control" value="${currentConfig.projectId || ''}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Storage Bucket</label>
+            <input type="text" id="fb-storageBucket" class="form-control" value="${currentConfig.storageBucket || ''}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Messaging Sender ID</label>
+            <input type="text" id="fb-messagingSenderId" class="form-control" value="${currentConfig.messagingSenderId || ''}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">App ID</label>
+            <input type="text" id="fb-appId" class="form-control" value="${currentConfig.appId || ''}">
+          </div>
+        </form>
+      </div>
+    `;
+
+    const footerHtml = `
+      <button class="btn btn-secondary" onclick="document.getElementById('modal-close-btn').click()">Cancel</button>
+      <button class="btn btn-primary" id="btn-save-fb-keys">🔥 Save Firebase Keys</button>
+    `;
+
+    this.openModal('🔥 Firebase Credentials Settings', bodyHtml, footerHtml);
+
+    document.getElementById('btn-save-fb-keys').addEventListener('click', () => {
+      const newConfig = {
+        apiKey: document.getElementById('fb-apiKey').value,
+        authDomain: document.getElementById('fb-authDomain').value,
+        projectId: document.getElementById('fb-projectId').value,
+        storageBucket: document.getElementById('fb-storageBucket').value,
+        messagingSenderId: document.getElementById('fb-messagingSenderId').value,
+        appId: document.getElementById('fb-appId').value
+      };
+
+      saveFirebaseConfig(newConfig);
+      this.closeModal();
+      this.showToast('🔥 Firebase Credentials updated successfully!', 'success');
+    });
   }
 
   /* Brick Estimator Calculation Math */
@@ -472,27 +689,27 @@ class App {
 
   openCreateOrderModal(prefillData = {}) {
     const products = store.getProducts();
-    const currentUser = store.getCurrentUser();
+    const currentUser = store.getCurrentUser() || {};
 
     const bodyHtml = `
       <form id="form-create-order">
         <div class="form-group">
           <label class="form-label">Client / Construction Company Name</label>
-          <input type="text" id="co-client" class="form-control" value="${prefillData.clientName || currentUser.company || 'Sharma Infrastructure & Builders'}" required>
+          <input type="text" id="co-client" class="form-control" value="${prefillData.clientName || currentUser.company || ''}" placeholder="e.g. Sharma Infrastructure & Builders" required>
         </div>
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
           <div class="form-group">
             <label class="form-label">Contact Person</label>
-            <input type="text" id="co-person" class="form-control" value="${currentUser.name || 'Vikram Sharma'}" required>
+            <input type="text" id="co-person" class="form-control" value="${currentUser.name || ''}" placeholder="Contact Person Name" required>
           </div>
           <div class="form-group">
             <label class="form-label">Phone Number</label>
-            <input type="text" id="co-phone" class="form-control" value="+91 98765 43210">
+            <input type="text" id="co-phone" class="form-control" value="" placeholder="+91 98765 00000">
           </div>
         </div>
         <div class="form-group">
           <label class="form-label">Delivery Job Site Address</label>
-          <input type="text" id="co-address" class="form-control" value="Block 4, Metro Horizon Plaza, Sector 12, Hyderabad" required>
+          <input type="text" id="co-address" class="form-control" value="" placeholder="Job Site Unloading Address" required>
         </div>
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
           <div class="form-group">
@@ -505,13 +722,13 @@ class App {
           </div>
           <div class="form-group">
             <label class="form-label">Quantity (Units)</label>
-            <input type="number" id="co-qty" class="form-control" value="${prefillData.quantity || 30000}" min="1000" step="1000" required>
+            <input type="number" id="co-qty" class="form-control" value="${prefillData.quantity || 20000}" min="1000" step="1000" required>
           </div>
         </div>
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
           <div class="form-group">
             <label class="form-label">Advance Deposit Amount (₹)</label>
-            <input type="number" id="co-advance" class="form-control" value="${prefillData.paidAmount || 100000}">
+            <input type="number" id="co-advance" class="form-control" value="50000" placeholder="0">
           </div>
           <div class="form-group">
             <label class="form-label">Payment Method</label>
@@ -532,7 +749,7 @@ class App {
 
     this.openModal('Issue New Clay Brick Order', bodyHtml, footerHtml);
 
-    document.getElementById('btn-submit-order').addEventListener('click', () => {
+    document.getElementById('btn-submit-order').addEventListener('click', async () => {
       const clientName = document.getElementById('co-client').value;
       const contactPerson = document.getElementById('co-person').value;
       const phone = document.getElementById('co-phone').value;
@@ -561,8 +778,10 @@ class App {
         paymentMethod
       });
 
+      await firebaseFirestore.addOrderToFirestore(newOrder);
+
       this.closeModal();
-      this.showToast(`Firebase Cloud Message: Order ${newOrder.id} confirmed!`, 'success');
+      this.showToast(`🔥 Firebase Cloud Message: Order ${newOrder.id} saved to Firestore!`, 'success');
       store.setView('orders');
       this.updateNavUI();
       this.renderActiveView();
@@ -625,7 +844,7 @@ class App {
       document.getElementById('rp-amount').value = bal;
     });
 
-    document.getElementById('btn-submit-payment').addEventListener('click', () => {
+    document.getElementById('btn-submit-payment').addEventListener('click', async () => {
       const orderSelect = document.getElementById('rp-order');
       const orderId = orderSelect.value;
       const clientName = orderSelect.options[orderSelect.selectedIndex].dataset.client;
@@ -633,10 +852,11 @@ class App {
       const paymentMethod = document.getElementById('rp-method').value;
       const refNo = document.getElementById('rp-ref').value;
 
-      store.recordPayment({ orderId, clientName, amount, paymentMethod, refNo });
+      const newPay = store.recordPayment({ orderId, clientName, amount, paymentMethod, refNo });
+      await firebaseFirestore.recordPaymentInFirestore(newPay);
 
       this.closeModal();
-      this.showToast(`Recorded payment of ₹${amount.toLocaleString()} for ${orderId}!`, 'success');
+      this.showToast(`🔥 Firestore Sync: Payment of ₹${amount.toLocaleString()} recorded for ${orderId}!`, 'success');
       this.renderActiveView();
     });
   }
@@ -690,7 +910,7 @@ class App {
 
     this.openModal(`Order Logistics - ${order.id}`, bodyHtml, footerHtml);
 
-    document.getElementById('btn-advance-status')?.addEventListener('click', (e) => {
+    document.getElementById('btn-advance-status')?.addEventListener('click', async (e) => {
       const nextStatusMap = {
         'Processing & Moulding': 'Moulding & Firing',
         'Moulding & Firing': 'Dispatched',
@@ -698,8 +918,10 @@ class App {
       };
       const nextStatus = nextStatusMap[order.status] || 'Delivered';
       store.updateOrderStatus(order.id, nextStatus);
+      await firebaseFirestore.updateOrderStatusInFirestore(order.id, nextStatus);
+
       this.closeModal();
-      this.showToast(`Status updated to ${nextStatus}`, 'success');
+      this.showToast(`🔥 Firestore Sync: Order status updated to ${nextStatus}`, 'success');
       this.renderActiveView();
     });
   }
@@ -709,7 +931,7 @@ class App {
     if (!order) return;
 
     const invoiceNo = 'INV-NSR-2026-' + order.id.replace('ORD-NSR-', '');
-    const gstAmount = order.totalAmount * 0.18; // 18% GST
+    const gstAmount = order.totalAmount * 0.18;
 
     const bodyHtml = `
       <div class="invoice-container" id="printable-invoice-area">

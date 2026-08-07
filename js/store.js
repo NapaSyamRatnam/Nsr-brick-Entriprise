@@ -1,17 +1,18 @@
 /* NSR Brick Enterprise - Firebase Firestore Simulation Store & Database */
 
-const STORAGE_KEY = 'nsr_brick_enterprise_db_v4';
+const STORAGE_KEY = 'nsr_brick_enterprise_db_v6_syam_admin';
 
+// Admin Manager & Demo Accounts Registry
 const DEMO_USERS = {
   admin: {
-    id: 'USR-ADMIN-01',
-    name: 'N.S. Reddy (Business Owner)',
+    id: 'USR-ADMIN-SYAM',
+    name: 'Syam Ratnam (Admin Manager)',
     role: 'owner',
-    roleLabel: 'Business Administrator & Owner',
-    email: 'nsreddy@nsrbrick.com',
+    roleLabel: 'Business Administrator & Kiln Manager',
+    email: 'syamratnam123@gmail.com',
     company: 'NSR Brick Enterprise Pvt Ltd',
     avatar: '👑',
-    welcomeMsg: 'Welcome back, Mr. Reddy! NSR Brick Kilns & Logistics ERP are fully operational.'
+    welcomeMsg: 'Welcome back, Mr. Syam Ratnam! NSR Brick Kilns & Enterprise ERP are fully operational.'
   },
   builder: {
     id: 'USR-BUILD-02',
@@ -45,7 +46,6 @@ const DEMO_USERS = {
   }
 };
 
-// High Quality Image Asset URLs for Hero Slider & Gallery
 const ASSET_IMAGES = {
   factory: 'https://images.unsplash.com/photo-1541888946425-d0fbb186a5b3?auto=format&fit=crop&w=1200&q=80',
   kiln: 'https://images.unsplash.com/photo-1581094794329-c8112a89af12?auto=format&fit=crop&w=1200&q=80',
@@ -57,12 +57,12 @@ const ASSET_IMAGES = {
 };
 
 const INITIAL_STATE = {
-  currentUser: DEMO_USERS.admin,
+  currentUser: null, // Starts NULL for strict login restriction
   activeView: 'landing',
   demoUsers: DEMO_USERS,
-  listeners: [], // Realtime firestore listener subscribers
+  registeredUsers: [],
+  listeners: [],
 
-  // Products Showcase Catalogue
   products: [
     {
       id: 'PRD-01',
@@ -118,7 +118,6 @@ const INITIAL_STATE = {
     }
   ],
 
-  // Kiln & Raw Resources Tracking (ERP)
   resources: {
     claySoilTons: { current: 1450, max: 2500, unit: 'Tons', reorderLevel: 500, costPerUnit: 45 },
     coalFuelTons: { current: 320, max: 800, unit: 'Tons', reorderLevel: 100, costPerUnit: 180 },
@@ -127,7 +126,6 @@ const INITIAL_STATE = {
     dryingShedCapacity: { current: 190000, max: 300000, unit: 'Units', reorderLevel: 40000, costPerUnit: 0.15 }
   },
 
-  // Kiln Operating Chambers
   kilnChambers: [
     { id: 'Kiln-01', status: 'Firing', temp: '1,050°C', bricksLoaded: 120000, completionPct: 78, cyclesLeftHours: 14 },
     { id: 'Kiln-02', status: 'Cooling', temp: '320°C', bricksLoaded: 110000, completionPct: 92, cyclesLeftHours: 5 },
@@ -135,7 +133,6 @@ const INITIAL_STATE = {
     { id: 'Kiln-04', status: 'Maintenance', temp: '25°C', bricksLoaded: 0, completionPct: 0, cyclesLeftHours: 0 }
   ],
 
-  // Orders Database (CRM)
   orders: [
     {
       id: 'ORD-NSR-8821',
@@ -186,57 +183,25 @@ const INITIAL_STATE = {
         { title: 'Kiln Chamber 01 Firing Stage', time: 'Aug 06, 08:00 AM', status: 'active' },
         { title: 'Cooling & Quality Check', time: 'Aug 08, 09:00 AM', status: 'pending' }
       ]
-    },
-    {
-      id: 'ORD-NSR-8823',
-      clientName: 'Skyline Real Estate Developers',
-      clientRole: 'Real Estate Developer',
-      contactPerson: 'Ananya Rao',
-      phone: '+91 98765 99887',
-      siteAddress: 'Eco-Park Business Towers, Mumbai',
-      orderDate: '2026-08-06',
-      deliveryDate: '2026-08-12',
-      brickType: 'NSR Thermal Insulation Hollow Clay Block',
-      quantity: 15000,
-      unitPrice: 25.00,
-      totalAmount: 375000,
-      paidAmount: 100000,
-      balance: 275000,
-      status: 'Pending Batch Approval',
-      paymentStatus: 'Partial',
-      driverAssigned: 'Pending Freight Dispatch',
-      timeline: [
-        { title: 'Bulk Quote & Advance Deposit Received', time: 'Aug 06, 04:45 PM', status: 'completed' },
-        { title: 'Lab Certification Verification', time: 'Aug 07, 10:00 AM', status: 'active' }
-      ]
     }
   ],
 
-  // Financial Payments & Ledger History (Finance ERP)
   payments: [
     { id: 'PAY-NSR-1001', orderId: 'ORD-NSR-8821', clientName: 'Sharma Infrastructure & Builders', amount: 250000, paymentMethod: 'UPI / Bank Transfer (NEFT)', date: '2026-08-04', status: 'Verified', refNo: 'NEFT-99384721' },
-    { id: 'PAY-NSR-1002', orderId: 'ORD-NSR-8822', clientName: 'Sunrise Villa Construction', amount: 300000, paymentMethod: 'Corporate Credit Line', date: '2026-08-05', status: 'Verified', refNo: 'CC-77382910' },
-    { id: 'PAY-NSR-1003', orderId: 'ORD-NSR-8823', clientName: 'Skyline Real Estate Developers', amount: 100000, paymentMethod: 'Digital Escrow Deposit', date: '2026-08-06', status: 'Verified', refNo: 'ESC-44021983' }
+    { id: 'PAY-NSR-1002', orderId: 'ORD-NSR-8822', clientName: 'Sunrise Villa Construction', amount: 300000, paymentMethod: 'Corporate Credit Line', date: '2026-08-05', status: 'Verified', refNo: 'CC-77382910' }
   ],
 
-  // Fleet & Logistics
   fleet: [
     { id: 'TX-409', driverName: 'Robert Vance', truckType: '24-Ton Tri-Axle Freight Truck', maxBricks: 10000, status: 'In Transit', currentOrder: 'ORD-NSR-8821', eta: '1 Hour 45 Mins' },
-    { id: 'TX-102', driverName: 'Carlos Mendoza', truckType: '18-Ton Flatbed Loader', maxBricks: 7500, status: 'Available', currentOrder: 'None', eta: 'Ready at Kiln Yard' },
-    { id: 'TX-205', driverName: 'Samir Patel', truckType: '30-Ton Multi-Trailer Heavy Freight', maxBricks: 15000, status: 'Loading at Kiln Shed #2', currentOrder: 'ORD-NSR-8822', eta: 'Departs Tomorrow' }
+    { id: 'TX-102', driverName: 'Carlos Mendoza', truckType: '18-Ton Flatbed Loader', maxBricks: 7500, status: 'Available', currentOrder: 'None', eta: 'Ready at Kiln Yard' }
   ],
 
-  // Verified Quality Test Reports
   certificates: [
-    { batchNo: 'NSR-BATCH-2026-C08', brickType: 'NSR Grade-A Heavy Density Red Clay', compressiveStrength: '3,850 PSI (26.5 MPa)', waterAbsorption: '6.4% (Ultra Low)', efflorescence: 'Nil (Class I)', thermalConductivity: '0.62 W/mK', greenCertification: 'ISO 14001 Eco-Grade' },
-    { batchNo: 'NSR-BATCH-2026-W04', brickType: 'NSR Wire-Cut Machine Pressed Facing Brick', compressiveStrength: '4,200 PSI (28.9 MPa)', waterAbsorption: '5.1%', efflorescence: 'Nil (Class I)', thermalConductivity: '0.58 W/mK', greenCertification: 'ASTM C216 Compliant' }
+    { batchNo: 'NSR-BATCH-2026-C08', brickType: 'NSR Grade-A Heavy Density Red Clay', compressiveStrength: '3,850 PSI (26.5 MPa)', waterAbsorption: '6.4% (Ultra Low)', efflorescence: 'Nil (Class I)', thermalConductivity: '0.62 W/mK', greenCertification: 'ISO 14001 Eco-Grade' }
   ],
 
-  // Testimonials
   testimonials: [
-    { name: 'Mr. Rajesh Agarwal', role: 'Chief Engineer, Apex Infrastructure', quote: 'NSR Brick Enterprise has consistently delivered ultra-high strength clay bricks for our commercial towers. Zero transit breakage and prompt site deliveries!' },
-    { name: 'Kavita Sundaram', role: 'Principal Architect, Urban Living Studios', quote: 'Their wire-cut facing bricks gave our residential villa project a stunning aesthetic finish without requiring external plastering. Highly recommended!' },
-    { name: 'Suresh Kumar', role: 'Project Director, National Highway Development', quote: 'The compressive strength test reports provided by NSR Brick Enterprise are 100% lab verified. Exceptional quality control.' }
+    { name: 'Mr. Rajesh Agarwal', role: 'Chief Engineer, Apex Infrastructure', quote: 'NSR Brick Enterprise has consistently delivered ultra-high strength clay bricks for our commercial towers. Zero transit breakage and prompt site deliveries!' }
   ]
 };
 
@@ -273,10 +238,39 @@ class Store {
     this.subscribers.forEach(cb => cb(this.data));
   }
 
-  // Auth
-  getCurrentUser() { return this.data.currentUser || DEMO_USERS.admin; }
+  // Auth & Access Control
+  getCurrentUser() { return this.data.currentUser; }
+  isLoggedIn() { return !!this.data.currentUser; }
   getDemoUsers() { return DEMO_USERS; }
-  getRole() { return this.getCurrentUser().role; }
+  getRole() { return this.data.currentUser ? this.data.currentUser.role : 'guest'; }
+
+  loginWithCredentials(email, password) {
+    const cleanEmail = email.trim().toLowerCase();
+    
+    // Check if Syam Ratnam (Admin Manager)
+    if (cleanEmail === 'syamratnam123@gmail.com') {
+      this.data.currentUser = DEMO_USERS.admin;
+      this.data.activeView = 'dashboard';
+      this.saveState();
+      return DEMO_USERS.admin;
+    }
+
+    // Standard user login
+    const name = cleanEmail.split('@')[0] || 'Authenticated User';
+    const newUser = {
+      id: 'USR-NSR-' + Math.floor(100 + Math.random() * 900),
+      name: name.charAt(0).toUpperCase() + name.slice(1),
+      email: cleanEmail,
+      role: 'builder',
+      roleLabel: 'Verified Enterprise User',
+      company: 'Registered Enterprise',
+      avatar: '👤',
+      welcomeMsg: `Welcome ${name}! Your account is authenticated.`
+    };
+    this.data.currentUser = newUser;
+    this.saveState();
+    return newUser;
+  }
 
   loginAsDemoProfile(roleKey) {
     if (DEMO_USERS[roleKey]) {
@@ -293,19 +287,31 @@ class Store {
   }
 
   registerUser(name, email, role, company) {
+    const cleanEmail = email.trim().toLowerCase();
+    
     const newUser = {
       id: 'USR-NSR-' + Math.floor(100 + Math.random() * 900),
       name,
-      email,
+      email: cleanEmail,
       role,
-      roleLabel: role === 'owner' ? 'Business Owner / Admin' : (role === 'builder' ? 'Builder / Contractor' : (role === 'worker' ? 'Site Foreman' : 'Real Estate Developer')),
-      company: company || 'Construction Enterprise',
+      roleLabel: role === 'owner' ? 'Business Owner / Admin Manager' : (role === 'builder' ? 'Builder / Contractor' : (role === 'worker' ? 'Site Foreman' : 'Real Estate Developer')),
+      company: company || 'NSR Construction Enterprise',
       avatar: role === 'owner' ? '👑' : (role === 'builder' ? '👷‍♂️' : (role === 'worker' ? '🏗️' : '🏢')),
-      welcomeMsg: `Welcome ${name}! Your profile account is ready.`
+      welcomeMsg: `Welcome ${name}! Your account has been registered in Firebase.`
     };
+
+    if (!this.data.registeredUsers) this.data.registeredUsers = [];
+    this.data.registeredUsers.push(newUser);
+
     this.data.currentUser = newUser;
     this.saveState();
     return newUser;
+  }
+
+  logoutUser() {
+    this.data.currentUser = null;
+    this.data.activeView = 'landing';
+    this.saveState();
   }
 
   // Getters
@@ -326,7 +332,6 @@ class Store {
     this.saveState();
   }
 
-  // Actions
   addResourceStock(resourceKey, amount) {
     if (this.data.resources[resourceKey]) {
       this.data.resources[resourceKey].current = Math.min(
