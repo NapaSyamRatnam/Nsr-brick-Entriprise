@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NSR Brick Enterprise - Clay Brick Business Management ERP & CRM</title>
+  <meta name="description" content="Enterprise Clay Brick Business Management Application for brick manufacturers, construction builders, civil engineers, architects, real estate developers, and logistics managers. ERP + CRM + Inventory + Logistics + Finance platform.">
+  
+  <!-- CSS Design System -->
+  <link rel="stylesheet" href="./styles/main.css">
+  <link rel="stylesheet" href="./styles/components.css">
+</head>
+<body>
+
+  <!-- Sticky App Header -->
+  <header class="app-header">
+    <div class="header-container">
+      
+      <!-- Brand Logo -->
+      <a href="#" class="brand-logo" onclick="event.preventDefault(); window.app?.navigateToLanding();">
+        <div class="brand-icon">🧱</div>
+        <div class="brand-text">
+          <span class="brand-title">NSR Brick Enterprise</span>
+          <span class="brand-tagline">Clay Brick ERP & CRM Platform</span>
+        </div>
+      </a>
+
+      <!-- Landing Page Public Top Navigation Bar (Hidden when logged into ERP modules) -->
+      <nav class="main-nav" id="main-top-nav">
+        <button class="nav-link-trigger active" data-view="landing" id="nav-top-home">Home</button>
+        <button class="btn-scroll-products" id="nav-top-products">Products</button>
+        <button class="btn-scroll-quote" id="nav-top-quote">Get Quote</button>
+        <button class="btn-scroll-contact" id="nav-top-contact">Contact</button>
+        <button class="nav-link-trigger" data-view="login" id="nav-top-login">Login / Portals</button>
+      </nav>
+
+      <!-- Active User Profile & Header Controls -->
+      <div style="display:flex; align-items:center; gap:0.75rem;">
+        
+        <button class="btn btn-secondary btn-sm" id="btn-theme-toggle" title="Toggle Light/Dark Theme">
+          <span id="theme-icon">🌙</span>
+        </button>
+
+        <div id="user-header-profile" style="display:flex; align-items:center; gap:0.6rem; background:var(--bg-dark); padding:0.4rem 0.85rem; border-radius:var(--radius-lg); border:1px solid var(--bg-surface-border);">
+          <span id="header-user-avatar" style="font-size:1.3rem;">👑</span>
+          <div style="display:flex; flex-direction:column;">
+            <span id="header-user-name" style="font-weight:700; font-size:0.82rem; color:var(--text-main);">N.S. Reddy</span>
+            <span id="header-user-role" style="font-size:0.7rem; color:var(--accent-amber); font-weight:600;">Business Owner</span>
+          </div>
+        </div>
+
+        <button class="btn btn-secondary btn-sm" id="btn-header-login-switch">
+          <span>🔄</span> Switch User / Logout
+        </button>
+
+      </div>
+
+    </div>
+  </header>
+
+  <!-- Top Telemetry Status Bar -->
+  <div class="top-status-bar">
+    <div class="top-status-container">
+      <div class="status-pill">
+        <span class="indicator-dot online"></span>
+        NSR Kiln Telemetry: <strong>3 Active Firing (1,050°C)</strong>
+      </div>
+      <div class="status-pill">
+        <span class="indicator-dot online"></span>
+        Raw Clay Reserve: <strong>1,450 Tons Available</strong>
+      </div>
+      <div class="status-pill">
+        <span class="indicator-dot warning"></span>
+        Coal Biomass Fuel: <strong>320 Tons (Burn Reserve OK)</strong>
+      </div>
+      <div class="status-pill">
+        <span class="indicator-dot online"></span>
+        Logistics Fleet: <strong>3 Trucks En Route (GPS Active)</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Application Body Layout -->
+  <div class="app-body">
+    
+    <!-- Left Sidebar Menu (ERP & CRM Navigation Component - SHOWN ONLY WHEN LOGGED IN) -->
+    <aside class="app-sidebar" id="app-sidebar">
+      <div>
+        <div class="nav-section-title">NSR ERP Modules</div>
+        <ul class="nav-list">
+          <li class="nav-item">
+            <button class="nav-link" data-view="landing" id="nav-landing">
+              <svg viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+              Public Homepage
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link active" data-view="dashboard" id="nav-dashboard">
+              <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+              Executive Dashboard
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link" data-view="resources" id="nav-resources">
+              <svg viewBox="0 0 24 24"><path d="M20 13V6a2 2 0 0-2-2H6a2 2 0 0-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/></svg>
+              Resources & Stock
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link" data-view="orders" id="nav-orders">
+              <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+              Orders & Freight
+              <span class="badge-count" id="sidebar-orders-badge">3</span>
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link" data-view="payments" id="nav-payments">
+              <svg viewBox="0 0 24 24"><path d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+              Payments & Ledger
+            </button>
+          </li>
+        </ul>
+      </div>
+
+      <div>
+        <div class="nav-section-title">Stakeholder Portals</div>
+        <ul class="nav-list">
+          <li class="nav-item">
+            <button class="nav-link" data-view="builder" id="nav-builder">
+              <svg viewBox="0 0 24 24"><path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m0 0v-5a2 2 0 012-2h2a2 2 0 012 2v5m-4 0h4"/></svg>
+              Builder & Estimator
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link" data-view="worker" id="nav-worker">
+              <svg viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+              Worker Express Portal
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link" data-view="realestate" id="nav-realestate">
+              <svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              Real Estate QA Hub
+            </button>
+          </li>
+          <li class="nav-item" style="margin-top:1rem; border-top:1px solid var(--bg-surface-border); padding-top:0.5rem;">
+            <button class="nav-link" data-view="login" id="nav-login">
+              <svg viewBox="0 0 24 24"><path d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
+              Switch Role / Logout
+            </button>
+          </li>
+        </ul>
+      </div>
+    </aside>
+
+    <!-- Main Dynamic Viewport -->
+    <main class="app-content" id="app-content">
+      <!-- Views Rendered via JavaScript -->
+    </main>
+
+  </div>
+
+  <!-- Reusable Modal Container -->
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modal-title">Modal Title</h3>
+        <button class="modal-close" id="modal-close-btn">&times;</button>
+      </div>
+      <div class="modal-body" id="modal-body">
+        <!-- Dynamic Modal Body -->
+      </div>
+      <div class="modal-footer" id="modal-footer">
+        <!-- Dynamic Modal Footer Buttons -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Application Controller Entry Point -->
+  <script type="module" src="./js/app.js"></script>
+</body>
+</html>

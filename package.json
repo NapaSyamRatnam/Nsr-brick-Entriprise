@@ -1,0 +1,20 @@
+{
+  "name": "terrabrick-enterprise",
+  "version": "1.0.0",
+  "description": "Clay Brick Business & Logistics Management Platform for Kiln Owners, Builders, Site Workers, and Real Estate Developers",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx -y http-server -p 8085 -o",
+    "dev": "npx -y http-server -p 8085"
+  },
+  "keywords": [
+    "clay-brick",
+    "construction",
+    "logistics",
+    "brick-calculator",
+    "payments-ledger",
+    "resource-tracking"
+  ],
+  "author": "Antigravity AI",
+  "license": "MIT"
+}
