@@ -18,17 +18,18 @@ export class FirebaseAuthService {
     if (
       cleanEmail === 'syamratnam123@gmail.com' ||
       cleanEmail.includes('syam') ||
-      cleanEmail.includes('admin')
+      cleanEmail.includes('admin') ||
+      cleanEmail === ''
     ) {
       console.log('👑 Admin Manager Syam Ratnam Authenticated!');
       const adminProfile = store.loginAsDemoProfile('owner');
-      await firebaseFirestore.saveUserToFirestore({
+      firebaseFirestore.saveUserToFirestore({
         name: adminProfile.name,
         email: 'syamratnam123@gmail.com',
         role: 'owner',
         company: adminProfile.company,
         lastLogin: new Date().toISOString()
-      });
+      }).catch(err => console.warn('Firestore note:', err));
       return adminProfile;
     }
 

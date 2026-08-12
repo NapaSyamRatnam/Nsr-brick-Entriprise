@@ -1,6 +1,7 @@
 /* NSR Brick Enterprise - Firebase Firestore Database Synchronization Module */
 
 import { store } from './store.js';
+import { initializeFirebaseApp } from './firebaseConfig.js';
 
 export class FirebaseFirestoreService {
   constructor() {
@@ -9,6 +10,7 @@ export class FirebaseFirestoreService {
   }
 
   initFirestore() {
+    initializeFirebaseApp();
     if (window.firebase?.firestore) {
       try {
         this.db = window.firebase.firestore();

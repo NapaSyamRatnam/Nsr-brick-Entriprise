@@ -39,9 +39,14 @@
         <button class="btn-scroll-contact" id="nav-top-contact">Contact</button>
       </nav>
 
-      <!-- Single Header Login Button (Admin Login removed from Navbar) -->
+      <!-- Header Actions -->
       <div style="display:flex; align-items:center; gap:0.75rem;">
         
+        <!-- Direct Quick Admin ERP Login Button -->
+        <button class="btn btn-sm" id="btn-header-quick-admin" style="background: linear-gradient(135deg, var(--primary-terracotta), var(--accent-amber)); color: #FFF; font-weight: 800; border: none; box-shadow: var(--shadow-sm);">
+          👑 Admin ERP Log In
+        </button>
+
         <!-- Theme Toggle -->
         <button class="btn btn-secondary btn-sm" id="btn-theme-toggle" title="Toggle Light/Dark Theme">
           <span id="theme-icon">🌙</span>
@@ -49,7 +54,7 @@
 
         <!-- Single Main Login / Logout Button -->
         <button class="btn btn-primary btn-sm" id="btn-header-login-main">
-          <span>🔑</span> Log In / Register
+          <span>🔑</span> Sign In / Register
         </button>
 
       </div>
@@ -60,9 +65,9 @@
   <!-- Top Telemetry Status Bar -->
   <div class="top-status-bar">
     <div class="top-status-container">
-      <div class="status-pill">
-        <span class="indicator-dot online"></span>
-        Firebase Status: <strong>🔥 Auth & Firestore Connected</strong>
+      <div class="status-pill" id="dom-firebase-admin-pill" style="cursor: pointer;" title="Click to view Firebase Admin DOM Status">
+        <span class="indicator-dot online" id="dom-fb-dot"></span>
+        Firebase Admin: <strong id="dom-fb-status-text">🔥 Connected (nsr-brick-enterprise)</strong>
       </div>
       <div class="status-pill">
         <span class="indicator-dot online"></span>

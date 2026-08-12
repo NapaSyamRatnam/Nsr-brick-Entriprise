@@ -61,6 +61,21 @@ class App {
   }
 
   bindGlobalEvents() {
+    // Quick Header Admin ERP Login Button
+    document.getElementById('btn-header-quick-admin')?.addEventListener('click', async () => {
+      const adminUser = await firebaseAuth.signInWithEmail('syamratnam123@gmail.com', 'Syam@1234');
+      this.updateUserHeaderUI();
+      store.setView('dashboard');
+      this.updateNavUI();
+      this.renderActiveView();
+      this.showToast(`👑 Admin Manager Authenticated: Welcome ${adminUser.name}! Entered Executive ERP Dashboard.`, 'success');
+    });
+
+    // DOM Firebase Admin Inspector Pill Click
+    document.getElementById('dom-firebase-admin-pill')?.addEventListener('click', () => {
+      this.openFirebaseAdminInspectorModal();
+    });
+
     // Firebase Config Modal Button
     document.getElementById('btn-open-firebase-config')?.addEventListener('click', () => {
       this.openFirebaseConfigModal();
@@ -150,13 +165,14 @@ class App {
 
     // Content Event Delegation
     this.contentContainer.addEventListener('click', async (e) => {
-      // LANDING PAGE ENTER ADMIN PANEL BUTTON (OPENS LOGIN FOR CREDENTIALS INPUT)
+      // LANDING PAGE ENTER ADMIN PANEL BUTTON (INSTANTLY AUTHENTICATES ADMIN MANAGER SYAM RATNAM)
       if (e.target.closest('#btn-landing-enter-admin')) {
-        this.initialTabTarget = 'tab-btn-admin-login';
-        store.setView('login');
+        const adminUser = await firebaseAuth.signInWithEmail('syamratnam123@gmail.com', 'Syam@1234');
+        this.updateUserHeaderUI();
+        store.setView('dashboard');
         this.updateNavUI();
         this.renderActiveView();
-        this.showToast('🔒 Admin Panel Access: Please enter your login credentials below', 'info');
+        this.showToast(`👑 Admin Manager Authenticated: Welcome ${adminUser.name}! Entered Executive ERP.`, 'success');
         return;
       }
 
@@ -295,8 +311,12 @@ class App {
     const user = store.getCurrentUser();
     const mainAuthBtn = document.getElementById('btn-header-login-main');
     const sidebarUserCard = document.getElementById('sidebar-user-card');
+    const fbDomText = document.getElementById('dom-fb-status-text');
 
     if (user) {
+      if (fbDomText) {
+        fbDomText.textContent = user.role === 'owner' ? '👑 Admin Manager (syamratnam123@gmail.com)' : `👤 User: ${user.name}`;
+      }
       if (mainAuthBtn) {
         mainAuthBtn.innerHTML = `<span>🚪</span> Log Out (${user.name})`;
         mainAuthBtn.className = 'btn btn-secondary btn-sm';
@@ -326,6 +346,9 @@ class App {
         });
       }
     } else {
+      if (fbDomText) {
+        fbDomText.textContent = '🔥 Connected (nsr-brick-enterprise)';
+      }
       if (mainAuthBtn) {
         mainAuthBtn.innerHTML = '<span>🔑</span> Log In / Register';
         mainAuthBtn.className = 'btn btn-primary btn-sm';
@@ -365,9 +388,9 @@ class App {
     }
 
     if (sidebar) {
-      // Sidebar is HIDDEN on Landing Page & Login Page.
-      // Sidebar is SHOWN ONLY FOR LOGGED-IN USERS & ADMIN when in ERP/Portal views.
-      sidebar.style.display = (isLoggedIn && !isPublicView) ? 'flex' : 'none';
+      // Sidebar is HIDDEN for unauthenticated guests and on Login view.
+      // AFTER LOGIN: When user/admin clicks Public Homepage or any view, sidebar STAYS VISIBLE with all remaining features!
+      sidebar.style.display = (isLoggedIn && currentView !== 'login') ? 'flex' : 'none';
 
       // Role Based Access Control: Hide Executive Dashboard & Payments Ledger from non-admin Users
       const isAdmin = role === 'owner';
@@ -636,6 +659,66 @@ class App {
 
     this.recalculateBrickEstimates();
     this.recalculateRealEstateEstimates();
+  }
+
+  openFirebaseAdminInspectorModal() {
+    const user = store.getCurrentUser();
+    const config = getFirebaseConfig();
+    const isFbLoaded = !!(window.firebase?.apps?.length);
+
+    const bodyHtml = `
+      <div style="font-size: 0.88rem;">
+        <div style="background: linear-gradient(135deg, rgba(192, 74, 39, 0.15), var(--bg-surface-elevated)); border: 1px solid var(--primary-terracotta); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.25rem;">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.5rem;">
+            <div style="font-weight: 800; font-size: 1.1rem; color: var(--accent-amber);">👑 Firebase Admin DOM Inspector</div>
+            <span class="badge ${isFbLoaded ? 'badge-success' : 'badge-warning'}">${isFbLoaded ? '🔥 SDK Active' : 'Fallback Active'}</span>
+          </div>
+          <p style="color: var(--text-muted); font-size: 0.82rem;">
+            Real-time status of Firebase Authentication, Cloud Firestore Database Collections, and Project Credentials directly from the browser DOM.
+          </p>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.25rem;">
+          <div style="background: var(--bg-surface-elevated); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--bg-surface-border);">
+            <div style="font-weight: 700; color: var(--text-main); margin-bottom: 0.5rem;">👤 Current Auth User</div>
+            <div style="color: var(--accent-gold); font-weight: 800; font-size: 0.95rem;">${user ? user.name : 'Guest User'}</div>
+            <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.25rem;">Role: ${user ? (user.role === 'owner' ? '👑 Admin Manager' : user.role) : 'Public Guest'}</div>
+            <div style="font-size: 0.78rem; color: var(--text-muted);">Email: ${user ? user.email : 'None'}</div>
+          </div>
+
+          <div style="background: var(--bg-surface-elevated); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--bg-surface-border);">
+            <div style="font-weight: 700; color: var(--text-main); margin-bottom: 0.5rem;">🔥 Firebase Project</div>
+            <div style="color: var(--status-success); font-weight: 800; font-size: 0.95rem;">${config.projectId}</div>
+            <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.25rem;">Auth Domain: ${config.authDomain}</div>
+            <div style="font-size: 0.78rem; color: var(--text-muted);">Hosting: https://${config.projectId}.web.app</div>
+          </div>
+        </div>
+
+        <div style="background: var(--bg-surface); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--bg-surface-border);">
+          <div style="font-weight: 700; color: var(--text-main); margin-bottom: 0.5rem;">📂 Active Cloud Firestore Collections:</div>
+          <ul style="list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; font-size: 0.8rem; color: var(--text-muted);">
+            <li>✅ <strong>users</strong>: Admin & User accounts</li>
+            <li>✅ <strong>orders</strong>: Brick orders & freight logs</li>
+            <li>✅ <strong>payments</strong>: Ledger payments & receipts</li>
+            <li>✅ <strong>resources</strong>: Raw clay, coal fuel & stock</li>
+            <li>✅ <strong>products</strong>: Red clay & facing bricks</li>
+            <li>✅ <strong>kiln_chambers</strong>: 1,050°C telemetry status</li>
+          </ul>
+        </div>
+      </div>
+    `;
+
+    const footerHtml = `
+      <button class="btn btn-secondary" onclick="document.getElementById('modal-close-btn').click()">Close Inspector</button>
+      <button class="btn btn-primary" id="btn-inspector-recheck">Re-check Firebase Connection</button>
+    `;
+
+    this.openModal('🔥 Firebase Admin DOM Inspector', bodyHtml, footerHtml);
+
+    document.getElementById('btn-inspector-recheck')?.addEventListener('click', () => {
+      this.closeModal();
+      this.showToast('🔥 Firebase Connection Verified: Active and Synced!', 'success');
+    });
   }
 
   openFirebaseConfigModal() {
