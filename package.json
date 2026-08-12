@@ -5,7 +5,10 @@
   "main": "index.html",
   "scripts": {
     "start": "npx -y http-server -p 8085 -o",
-    "dev": "npx -y http-server -p 8085"
+    "dev": "npx -y http-server -p 8085",
+    "deploy": "firebase deploy",
+    "deploy:hosting": "firebase deploy --only hosting",
+    "deploy:firestore": "firebase deploy --only firestore"
   },
   "keywords": [
     "clay-brick",
@@ -16,5 +19,8 @@
     "resource-tracking"
   ],
   "author": "Antigravity AI",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "firebase-tools": "^15.26.0"
+  }
 }

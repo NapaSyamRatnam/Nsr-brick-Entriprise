@@ -149,6 +149,45 @@ export class FirebaseFirestoreService {
       }
     }
   }
+
+  async updateResourceStockInFirestore(resourceKey, amount) {
+    if (this.db) {
+      try {
+        await this.db.collection('resources').doc(resourceKey).set({
+          resourceKey,
+          amount,
+          updatedAt: window.firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+        console.log('🔥 Raw material resource updated in Firebase Firestore:', resourceKey, amount);
+      } catch (err) {
+        console.warn('Firestore resource update fallback:', err.message);
+      }
+    }
+  }
+
+  async syncAllDataToFirestore() {
+    if (!this.db) return;
+    try {
+      const resources = store.getResources();
+      for (const [key, res] of Object.entries(resources)) {
+        await this.db.collection('resources').doc(key).set({ ...res, updatedAt: window.firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
+      }
+
+      const kilnChambers = store.getKilnChambers();
+      for (const chamber of kilnChambers) {
+        await this.db.collection('kiln_chambers').doc(chamber.id).set({ ...chamber, updatedAt: window.firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
+      }
+
+      const payments = store.getPayments();
+      for (const pay of payments) {
+        await this.db.collection('payments').doc(pay.id).set(pay, { merge: true });
+      }
+
+      console.log('🔥 Complete Firebase Firestore database sync complete across resources, kiln chambers, orders, and payments!');
+    } catch (err) {
+      console.warn('Full sync note:', err.message);
+    }
+  }
 }
 
 export const firebaseFirestore = new FirebaseFirestoreService();

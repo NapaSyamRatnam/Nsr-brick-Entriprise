@@ -86,7 +86,7 @@
   <!-- Main Application Body Layout -->
   <div class="app-body">
     
-    <!-- Left Sidebar Menu (ERP Component - SHOWN ONLY WHEN LOGGED IN) -->
+    <!-- Left Sidebar Menu (ERP & Portals Component - SHOWN ONLY AFTER LOGIN) -->
     <aside class="app-sidebar" id="app-sidebar" style="display: none;">
       <div>
         <div class="nav-section-title">NSR ERP Modules</div>
@@ -98,7 +98,7 @@
             </button>
           </li>
           <li class="nav-item" id="nav-item-dashboard">
-            <button class="nav-link active" data-view="dashboard" id="nav-dashboard">
+            <button class="nav-link" data-view="dashboard" id="nav-dashboard">
               <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
               Executive Dashboard (Admin Only)
             </button>
@@ -111,7 +111,7 @@
           </li>
           <li class="nav-item">
             <button class="nav-link" data-view="orders" id="nav-orders">
-              <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+              <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012-2"/></svg>
               Orders & Freight
               <span class="badge-count" id="sidebar-orders-badge">3</span>
             </button>
@@ -146,14 +146,11 @@
               Real Estate QA Hub
             </button>
           </li>
-          <li class="nav-item" style="margin-top:1rem; border-top:1px solid var(--bg-surface-border); padding-top:0.5rem;">
-            <button class="nav-link" id="nav-sidebar-logout">
-              <svg viewBox="0 0 24 24"><path d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
-              Log Out of Account
-            </button>
-          </li>
         </ul>
       </div>
+
+      <!-- Dynamic Sidebar User & Auth Info Card -->
+      <div id="sidebar-user-card" style="margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--bg-surface-border);"></div>
     </aside>
 
     <!-- Main Dynamic Viewport -->

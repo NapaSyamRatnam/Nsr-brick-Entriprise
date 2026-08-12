@@ -294,16 +294,59 @@ class App {
   updateUserHeaderUI() {
     const user = store.getCurrentUser();
     const mainAuthBtn = document.getElementById('btn-header-login-main');
+    const sidebarUserCard = document.getElementById('sidebar-user-card');
 
     if (user) {
       if (mainAuthBtn) {
         mainAuthBtn.innerHTML = `<span>🚪</span> Log Out (${user.name})`;
         mainAuthBtn.className = 'btn btn-secondary btn-sm';
       }
+      if (sidebarUserCard) {
+        sidebarUserCard.innerHTML = `
+          <div style="background: var(--bg-surface-elevated); padding: 0.85rem; border-radius: var(--radius-md); border: 1px solid var(--bg-surface-border);">
+            <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.4rem;">
+              <div style="width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, var(--primary-terracotta), var(--accent-amber)); display: flex; align-items: center; justify-content: center; font-weight: bold; color: #fff; font-size: 0.85rem;">
+                ${user.name.charAt(0).toUpperCase()}
+              </div>
+              <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                <div style="font-weight: 700; font-size: 0.85rem; color: var(--text-main);">${user.name}</div>
+                <div style="font-size: 0.7rem; color: var(--accent-gold); text-transform: uppercase; font-weight: 600;">${user.role === 'owner' ? '👑 Admin Owner' : '👷 ' + user.role}</div>
+              </div>
+            </div>
+            <button class="btn btn-secondary btn-sm" id="btn-sidebar-user-logout" style="width: 100%; margin-top: 0.4rem; font-size: 0.78rem; padding: 0.35rem; justify-content: center;">
+              Log Out of Account
+            </button>
+          </div>
+        `;
+        document.getElementById('btn-sidebar-user-logout')?.addEventListener('click', () => {
+          store.logoutUser();
+          this.updateNavUI();
+          this.renderActiveView();
+          this.showToast('Logged out successfully.', 'info');
+        });
+      }
     } else {
       if (mainAuthBtn) {
         mainAuthBtn.innerHTML = '<span>🔑</span> Log In / Register';
         mainAuthBtn.className = 'btn btn-primary btn-sm';
+      }
+      if (sidebarUserCard) {
+        sidebarUserCard.innerHTML = `
+          <div style="background: rgba(192, 74, 39, 0.08); padding: 0.85rem; border-radius: var(--radius-md); border: 1px dashed var(--primary-terracotta);">
+            <div style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 0.4rem; font-weight: 600;">
+              🌐 Public Guest Mode
+            </div>
+            <button class="btn btn-primary btn-sm" id="btn-sidebar-user-login" style="width: 100%; font-size: 0.78rem; padding: 0.4rem; justify-content: center;">
+              🔑 Log In to Access ERP
+            </button>
+          </div>
+        `;
+        document.getElementById('btn-sidebar-user-login')?.addEventListener('click', () => {
+          this.initialTabTarget = 'tab-btn-admin-login';
+          store.setView('login');
+          this.updateNavUI();
+          this.renderActiveView();
+        });
       }
     }
   }
@@ -322,15 +365,17 @@ class App {
     }
 
     if (sidebar) {
+      // Sidebar is HIDDEN on Landing Page & Login Page.
+      // Sidebar is SHOWN ONLY FOR LOGGED-IN USERS & ADMIN when in ERP/Portal views.
       sidebar.style.display = (isLoggedIn && !isPublicView) ? 'flex' : 'none';
 
-      // Role Based Sidebar Item Restrictions (Admin vs Limited Users)
+      // Role Based Access Control: Hide Executive Dashboard & Payments Ledger from non-admin Users
       const isAdmin = role === 'owner';
       const dashItem = document.getElementById('nav-item-dashboard');
       const payItem = document.getElementById('nav-item-payments');
 
-      if (dashItem) dashItem.style.display = isAdmin ? 'block' : 'none';
-      if (payItem) payItem.style.display = isAdmin ? 'block' : 'none';
+      if (dashItem) dashItem.style.display = (isLoggedIn && isAdmin) ? 'block' : 'none';
+      if (payItem) payItem.style.display = (isLoggedIn && isAdmin) ? 'block' : 'none';
     }
 
     document.querySelectorAll('.nav-link').forEach(link => {
@@ -749,13 +794,14 @@ class App {
 
     this.openModal('Restock Raw Material Inventory', bodyHtml, footerHtml);
 
-    document.getElementById('btn-submit-restock').addEventListener('click', () => {
+    document.getElementById('btn-submit-restock').addEventListener('click', async () => {
       const type = document.getElementById('restock-type').value;
       const amount = parseFloat(document.getElementById('restock-amount').value);
 
       store.addResourceStock(type, amount);
+      await firebaseFirestore.updateResourceStockInFirestore(type, amount);
       this.closeModal();
-      this.showToast(`Updated Firestore: Added ${amount} units to raw inventory!`, 'success');
+      this.showToast(`🔥 Firestore Sync: Added ${amount} units to raw inventory (${type})!`, 'success');
       this.renderActiveView();
     });
   }

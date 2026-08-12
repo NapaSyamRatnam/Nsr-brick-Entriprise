@@ -1,4 +1,4 @@
-/* NSR Brick Enterprise - Clean Authentication View */
+/* NSR Brick Enterprise - Dedicated Admin Manager & User Authentication View */
 
 import { store } from '../store.js';
 
@@ -8,12 +8,12 @@ export function renderLoginView() {
       
       <!-- NSR Brick Header Banner -->
       <div style="background: linear-gradient(135deg, rgba(192, 74, 39, 0.25), var(--bg-surface-elevated)); border: 1px solid var(--primary-terracotta); border-radius: var(--radius-lg); padding: 2rem; margin-bottom: 2rem; text-align: center; box-shadow: var(--shadow-glow);">
-        <div style="font-size: 3rem; margin-bottom: 0.5rem;">🧱</div>
+        <div style="font-size: 3rem; margin-bottom: 0.5rem;">👑</div>
         <h1 style="font-family: var(--font-heading); font-size: 2.2rem; font-weight: 900; color: var(--text-main); margin-bottom: 0.5rem;">
           NSR Brick Enterprise Portal
         </h1>
         <p style="font-size: 0.95rem; color: var(--text-muted); max-width: 580px; margin: 0 auto; line-height: 1.6;">
-          🔒 <strong>Production Firebase Authentication Active</strong>: Enter your email address and password to log in.
+          🔥 <strong>Production Firebase Authentication Active</strong>: Admin Manager credentials automatically pushed & prepared below. Click Log In to enter Executive ERP.
         </p>
       </div>
 
@@ -23,7 +23,7 @@ export function renderLoginView() {
         <!-- Tab Header Buttons -->
         <div style="display: flex; border-bottom: 1px solid var(--bg-surface-border); background: var(--bg-surface-elevated);">
           <button id="tab-btn-admin-login" class="auth-tab-btn active" style="flex: 1; padding: 1.1rem; border: none; background: transparent; color: var(--accent-amber); font-family: var(--font-heading); font-weight: 800; font-size: 1rem; cursor: pointer; border-bottom: 3px solid var(--primary-terracotta);">
-            🔐 Log In to Account
+            👑 Admin Manager Log In
           </button>
           <button id="tab-btn-user-auth" class="auth-tab-btn" style="flex: 1; padding: 1.1rem; border: none; background: transparent; color: var(--text-muted); font-family: var(--font-heading); font-weight: 800; font-size: 1rem; cursor: pointer; border-bottom: 3px solid transparent;">
             ✍️ Register New Account
@@ -32,14 +32,14 @@ export function renderLoginView() {
 
         <div style="padding: 2.5rem;">
 
-          <!-- PANEL 1: CLEAN LOGIN FORM (NO BADGES, NO CREDENTIALS TEXT) -->
+          <!-- PANEL 1: ADMIN MANAGER LOGIN FORM (PRE-FILLED WITH syamratnam123@gmail.com / Syam@1234) -->
           <div id="auth-panel-admin-login">
             <form id="form-admin-login" novalidate>
               <div class="form-group">
                 <label class="form-label" for="admin-email">
                   Email Address / Username <span style="color: var(--status-danger);">*</span>
                 </label>
-                <input type="email" id="admin-email" class="form-control" placeholder="Enter your email address" value="" required>
+                <input type="email" id="admin-email" class="form-control" placeholder="syamratnam123@gmail.com" value="syamratnam123@gmail.com" required>
                 <span id="err-admin-email" style="display: none; font-size: 0.75rem; color: var(--status-danger); margin-top: 0.25rem;">
                   ⚠️ Email Address is required.
                 </span>
@@ -49,14 +49,14 @@ export function renderLoginView() {
                 <label class="form-label" for="admin-password">
                   Password <span style="color: var(--status-danger);">*</span>
                 </label>
-                <input type="password" id="admin-password" class="form-control" placeholder="Enter your password" value="" required>
+                <input type="password" id="admin-password" class="form-control" placeholder="Syam@1234" value="Syam@1234" required>
                 <span id="err-admin-password" style="display: none; font-size: 0.75rem; color: var(--status-danger); margin-top: 0.25rem;">
                   ⚠️ Password is required.
                 </span>
               </div>
 
-              <button type="submit" id="btn-submit-admin-login" class="btn btn-primary" style="width: 100%; margin-top: 1rem; padding: 0.85rem; font-size: 1rem;">
-                🚀 Log In to Enterprise Portal
+              <button type="submit" id="btn-submit-admin-login" class="btn btn-primary" style="width: 100%; margin-top: 1rem; padding: 0.95rem; font-size: 1.05rem; font-weight: 800; background: linear-gradient(135deg, var(--primary-terracotta), var(--accent-amber)); border: none; box-shadow: var(--shadow-lg);">
+                👑 Log In as Admin Manager (syamratnam123@gmail.com)
               </button>
             </form>
           </div>
