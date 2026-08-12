@@ -3,18 +3,30 @@
 import { store } from '../store.js';
 
 export function renderOrdersManager() {
-  const orders = store.getOrders();
+  const currentUser = store.getCurrentUser();
+  const isAdmin = currentUser && currentUser.role === 'owner';
+
+  let orders = store.getOrders();
+
+  // Non-Admin User Privacy Filter
+  if (!isAdmin && currentUser) {
+    orders = orders.filter(o => 
+      o.clientName?.toLowerCase().includes(currentUser.name?.toLowerCase()) ||
+      o.clientName?.toLowerCase().includes((currentUser.company || '').toLowerCase()) ||
+      o.contactPerson?.toLowerCase().includes(currentUser.name?.toLowerCase())
+    );
+  }
 
   return `
     <div class="view-header">
       <div class="view-title-group">
-        <h1>Clay Brick Orders & Freight Logistics</h1>
-        <p>Track contractor brick orders, moulding schedules, kiln chamber allocation, and live site dispatch</p>
+        <h1>${isAdmin ? 'Clay Brick Orders & Freight Logistics' : 'My Site Orders & Freight Tracking'}</h1>
+        <p>${isAdmin ? 'Track contractor brick orders, moulding schedules, kiln chamber allocation, and live site dispatch' : 'Track your clay brick orders, delivery schedules, and live site freight dispatches'}</p>
       </div>
       <div class="view-actions">
         <button class="btn btn-primary" id="btn-open-create-order">
           <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 4v16m-8-8h16"/></svg>
-          Create New Brick Order
+          Order Brick Stock
         </button>
       </div>
     </div>

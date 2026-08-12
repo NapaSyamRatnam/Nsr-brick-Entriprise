@@ -120,7 +120,7 @@ export function renderBuilderPortal() {
       📦 Active Builder Job Site Dispatches
     </h2>
 
-    <div class="table-card">
+    <div class="table-card" style="margin-bottom:2.5rem;">
       <div class="table-toolbar">
         <h3 style="font-family:var(--font-heading); font-size:1.05rem; font-weight:700;">Site Orders</h3>
         <span class="badge badge-info">${orders.length} Orders Logged</span>
@@ -159,6 +159,55 @@ export function renderBuilderPortal() {
                 <td style="font-size:0.8rem; color:var(--text-muted);">${o.driverAssigned}</td>
                 <td>
                   <button class="btn btn-secondary btn-sm btn-view-order" data-id="${o.id}">Track Truck</button>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Quotation Lifecycle & 1-Click Convert to Order Table (Directive 6) -->
+    <div class="table-card">
+      <div class="table-toolbar">
+        <h3 style="font-family:var(--font-heading); font-size:1.05rem; font-weight:700;">💬 Quotations Register (Draft ➔ Sent ➔ Convert to Order)</h3>
+        <span class="badge badge-neutral">${store.getQuotations().length} Quotations</span>
+      </div>
+
+      <div style="overflow-x:auto;">
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th>Quote ID</th>
+              <th>Customer Name</th>
+              <th>Requested Brick Grade</th>
+              <th>Quantity</th>
+              <th>Quotation Total (₹)</th>
+              <th>Validity Date</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${store.getQuotations().map(q => `
+              <tr>
+                <td><strong style="color:var(--accent-amber);">${q.id}</strong></td>
+                <td><strong style="color:var(--text-main);">${q.customerName}</strong></td>
+                <td>${q.brickType.split(' ')[0]} ${q.brickType.split(' ')[1] || ''}</td>
+                <td><strong>${q.quantity.toLocaleString()} Pcs</strong></td>
+                <td><strong style="color:var(--status-success);">₹${q.totalAmount.toLocaleString()}</strong></td>
+                <td>${q.validityDate}</td>
+                <td>
+                  <span class="badge ${q.status === 'Converted' ? 'badge-success' : (q.status === 'Sent' ? 'badge-warning' : 'badge-neutral')}">
+                    ${q.status}
+                  </span>
+                </td>
+                <td>
+                  ${q.status !== 'Converted' ? `
+                    <button class="btn btn-primary btn-sm btn-convert-quote" data-quote-id="${q.id}">
+                      ✓ Accept & Convert to Order
+                    </button>
+                  ` : `<span style="color:var(--status-success); font-size:0.8rem; font-weight:700;">✓ Converted</span>`}
                 </td>
               </tr>
             `).join('')}

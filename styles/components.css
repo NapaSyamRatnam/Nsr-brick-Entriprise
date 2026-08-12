@@ -1,24 +1,17 @@
 /* NSR Brick Enterprise - Components & Landing Page Styles */
 
-/* Hero Banner & Image Slider */
+/* Hero Banner Container (Image-Free Ultra-Attractive Dark Industrial Mesh) */
 .hero-section {
   position: relative;
-  min-height: 580px;
+  min-height: 560px;
   border-radius: var(--radius-lg);
   overflow: hidden;
   margin-bottom: 3rem;
   display: flex;
   align-items: center;
-  box-shadow: var(--shadow-lg);
-}
-
-.hero-slider-bg {
-  position: absolute;
-  inset: 0;
-  background-size: cover;
-  background-position: center;
-  transition: background-image 1s ease-in-out;
-  filter: brightness(0.4) contrast(1.1);
+  background: radial-gradient(circle at 85% 20%, rgba(192, 74, 39, 0.28) 0%, transparent 50%), radial-gradient(circle at 15% 85%, rgba(229, 142, 38, 0.18) 0%, transparent 45%), linear-gradient(135deg, #13171b 0%, #0b0d0f 100%);
+  border: 1px solid rgba(192, 74, 39, 0.4);
+  box-shadow: 0 16px 56px rgba(192, 74, 39, 0.3), var(--shadow-lg);
 }
 
 .hero-content {

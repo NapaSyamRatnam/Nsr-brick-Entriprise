@@ -3,6 +3,9 @@
 import { store } from '../store.js';
 
 export function renderResourceTracker() {
+  const currentUser = store.getCurrentUser();
+  const isAdmin = currentUser && currentUser.role === 'owner';
+
   const resources = store.getResources();
   const kilns = store.getKilnChambers();
 
@@ -12,12 +15,14 @@ export function renderResourceTracker() {
         <h1>Kiln Resources & Finished Stock Inventory</h1>
         <p>Monitor raw clay deposits, coal fuel reserves, water tanks, drying shed queues, and finished grade stock</p>
       </div>
-      <div class="view-actions">
-        <button class="btn btn-primary" id="btn-open-restock-modal">
-          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 4v16m-8-8h16"/></svg>
-          Log Raw Material Shipment
-        </button>
-      </div>
+      ${isAdmin ? `
+        <div class="view-actions">
+          <button class="btn btn-primary" id="btn-open-restock-modal">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 4v16m-8-8h16"/></svg>
+            Log Raw Material Shipment
+          </button>
+        </div>
+      ` : ''}
     </div>
 
     <!-- Section 1: Raw Materials Stock -->
@@ -122,7 +127,7 @@ export function renderResourceTracker() {
     </div>
 
     <!-- Section 3: Kiln Firing Chamber Deep-Dive Table -->
-    <div class="table-card">
+    <div class="table-card" style="margin-bottom:2.5rem;">
       <div class="table-toolbar">
         <h3 style="font-family:var(--font-heading); font-size:1.1rem; font-weight:700;">Kiln Chamber Firing & Cool-Down Log</h3>
         <span class="badge badge-neutral">${kilns.length} Operational Chambers</span>
@@ -162,6 +167,50 @@ export function renderResourceTracker() {
           `).join('')}
         </tbody>
       </table>
+    </div>
+
+    <!-- Section 4: Auditable Stock Movement Ledger (Directive 3) -->
+    <div class="table-card">
+      <div class="table-toolbar">
+        <h3 style="font-family:var(--font-heading); font-size:1.1rem; font-weight:700;">📊 Auditable Stock Movement Ledger</h3>
+        <span class="badge badge-neutral">Opening + Production - Dispatched = Available</span>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th>Movement ID</th>
+              <th>Date</th>
+              <th>Movement Type</th>
+              <th>Brick Grade Item</th>
+              <th>Quantity Change</th>
+              <th>Order / Batch Ref</th>
+              <th>Balance After</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${store.getStockMovements().map(m => `
+              <tr>
+                <td><strong style="color:var(--accent-amber);">${m.id}</strong></td>
+                <td>${m.date}</td>
+                <td>
+                  <span class="badge ${m.type === 'PRODUCTION_IN' ? 'badge-success' : 'badge-warning'}">
+                    ${m.type}
+                  </span>
+                </td>
+                <td><strong style="color:var(--text-main);">${m.item}</strong></td>
+                <td>
+                  <strong style="color:${m.qty > 0 ? 'var(--status-success)' : 'var(--status-danger)'};">
+                    ${m.qty > 0 ? '+' : ''}${m.qty.toLocaleString()} Pcs
+                  </strong>
+                </td>
+                <td><code style="color:var(--accent-gold); font-size:0.78rem;">${m.reference}</code></td>
+                <td><strong>${m.balanceAfter.toLocaleString()} Pcs</strong></td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
     </div>
   `;
 }

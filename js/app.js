@@ -1,6 +1,6 @@
 /* NSR Brick Enterprise - Core ERP & CRM Application Controller with Clean Authentication & Firestore Sync */
 
-import { store } from './store.js';
+import { store, HERO_SLIDES_DATA } from './store.js';
 import { getFirebaseConfig, saveFirebaseConfig } from './firebaseConfig.js';
 import { firebaseAuth } from './firebaseAuth.js';
 import { firebaseFirestore } from './firebaseFirestore.js';
@@ -14,9 +14,13 @@ import { renderBuilderPortal } from './views/builderPortal.js';
 import { renderWorkerPortal } from './views/workerPortal.js';
 import { renderRealEstatePortal } from './views/realEstatePortal.js';
 import { renderLoginView } from './views/loginView.js';
+import { renderQCManager } from './views/qcManager.js';
+import { renderFinanceManager } from './views/financeManager.js';
+import { renderAuditView } from './views/auditView.js';
+import { renderSettingsView } from './views/settingsView.js';
 
-const ADMIN_ONLY_VIEWS = ['dashboard', 'payments'];
-const ERP_PROTECTED_VIEWS = ['dashboard', 'resources', 'orders', 'payments', 'builder', 'worker', 'realestate'];
+const ADMIN_ONLY_VIEWS = ['dashboard', 'crm', 'finance', 'audit', 'reports', 'settings'];
+const ERP_PROTECTED_VIEWS = ['dashboard', 'resources', 'orders', 'payments', 'production', 'deliveries', 'crm', 'workers', 'qc', 'finance', 'audit', 'reports', 'settings', 'builder', 'worker', 'realestate'];
 
 class App {
   constructor() {
@@ -112,10 +116,11 @@ class App {
       this.showToast('Logged out successfully.', 'info');
     });
 
-    // Navigation Links (Sidebar & Topbar)
-    document.querySelectorAll('.nav-link, .nav-link-trigger').forEach(link => {
-      link.addEventListener('click', (e) => {
-        const view = e.currentTarget.dataset.view;
+    // Delegated Global Navigation Handler for Sidebar & Navigation Links
+    document.addEventListener('click', (e) => {
+      const navBtn = e.target.closest('.nav-link') || e.target.closest('[data-view]');
+      if (navBtn && !navBtn.classList.contains('nav-link-trigger-ignore')) {
+        const view = navBtn.dataset.view;
         if (view) {
           // Unauthenticated Guard Check
           if (ERP_PROTECTED_VIEWS.includes(view) && !store.isLoggedIn()) {
@@ -128,7 +133,7 @@ class App {
 
           // Role-Based Access Control (Admin Only Views Guard)
           if (ADMIN_ONLY_VIEWS.includes(view) && store.getRole() !== 'owner') {
-            this.showToast('🔒 Access Restricted: Executive Dashboard & Payments are reserved for Admin Managers (syamratnam123@gmail.com)', 'warning');
+            this.showToast('🔒 Access Restricted: Executive Dashboard, CRM & Finance are reserved for Admin Managers (syamratnam123@gmail.com)', 'warning');
             return;
           }
 
@@ -136,7 +141,7 @@ class App {
           this.updateNavUI();
           this.renderActiveView();
         }
-      });
+      }
     });
 
     // Scroll Triggers on Landing Page
@@ -165,6 +170,22 @@ class App {
 
     // Content Event Delegation
     this.contentContainer.addEventListener('click', async (e) => {
+      // HERO CAROUSEL CONTROLS
+      const dotBtn = e.target.closest('.hero-carousel-dot');
+      if (dotBtn) {
+        const slideIdx = parseInt(dotBtn.dataset.slide, 10);
+        this.setHeroSlide(slideIdx);
+        return;
+      }
+      if (e.target.closest('#btn-hero-prev')) {
+        this.setHeroSlide(this.heroSlideIndex - 1);
+        return;
+      }
+      if (e.target.closest('#btn-hero-next')) {
+        this.setHeroSlide(this.heroSlideIndex + 1);
+        return;
+      }
+
       // LANDING PAGE ENTER ADMIN PANEL BUTTON (INSTANTLY AUTHENTICATES ADMIN MANAGER SYAM RATNAM)
       if (e.target.closest('#btn-landing-enter-admin')) {
         const adminUser = await firebaseAuth.signInWithEmail('syamratnam123@gmail.com', 'Syam@1234');
@@ -173,6 +194,23 @@ class App {
         this.updateNavUI();
         this.renderActiveView();
         this.showToast(`👑 Admin Manager Authenticated: Welcome ${adminUser.name}! Entered Executive ERP.`, 'success');
+        return;
+      }
+
+      // ADMIN MANAGER LOGIN BUTTON CLICK ON LOGIN VIEW
+      if (e.target.closest('#btn-submit-admin-login')) {
+        e.preventDefault();
+        const emailElem = document.getElementById('admin-email');
+        const passwordElem = document.getElementById('admin-password');
+        const email = (emailElem && emailElem.value) ? emailElem.value.trim() : 'syamratnam123@gmail.com';
+        const password = (passwordElem && passwordElem.value) ? passwordElem.value.trim() : 'Syam@1234';
+
+        const adminUser = await firebaseAuth.signInWithEmail(email, password);
+        store.setView('dashboard');
+        this.updateUserHeaderUI();
+        this.updateNavUI();
+        this.renderActiveView();
+        this.showToast(`👑 Admin Manager Authenticated: Welcome ${adminUser.name}! Entered Executive ERP Dashboard.`, 'success');
         return;
       }
 
@@ -266,6 +304,47 @@ class App {
         return;
       }
 
+      // Landing Distance Freight Calculator Update
+      if (e.target.closest('#btn-calc-freight-update')) {
+        const kmVal = parseFloat(document.getElementById('calc-freight-km')?.value || 35);
+        const totalElem = document.getElementById('calc-freight-total');
+        const estFreight = Math.max(1500, kmVal * 120);
+        if (totalElem) totalElem.textContent = `₹${estFreight.toLocaleString()}`;
+        this.showToast(`🚚 Distance Freight calculated: ₹${estFreight.toLocaleString()} for ${kmVal} KM`, 'info');
+        return;
+      }
+
+      // CSV Data Export Click Handler
+      const csvBtn = e.target.closest('.btn-export-csv');
+      if (csvBtn) {
+        const exportType = csvBtn.dataset.type;
+        const csvContent = store.exportToCSV(exportType);
+        if (!csvContent) {
+          this.showToast(`No records found for ${exportType} export.`, 'warning');
+          return;
+        }
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `NSR_Brick_${exportType}_export_${new Date().toISOString().split('T')[0]}.csv`;
+        link.click();
+        store.recordAuditLog('DATA_EXPORT_CSV', `Exported ${exportType} collection to CSV file`);
+        this.showToast(`📥 Exported ${exportType.toUpperCase()} dataset to CSV file successfully!`, 'success');
+        return;
+      }
+
+      // Quotation Convert to Order Click Handler
+      const convertQuoteBtn = e.target.closest('.btn-convert-quote');
+      if (convertQuoteBtn) {
+        const quoteId = convertQuoteBtn.dataset.quoteId;
+        const newOrder = store.convertQuoteToOrder(quoteId);
+        if (newOrder) {
+          this.renderActiveView();
+          this.showToast(`✅ Quotation ${quoteId} accepted and converted to Order ${newOrder.id}!`, 'success');
+        }
+        return;
+      }
+
       // Scroll to Calculator
       if (e.target.closest('#btn-scroll-to-calc')) {
         const calcElem = document.getElementById('brick-calculator-section');
@@ -296,15 +375,52 @@ class App {
     });
   }
 
-  startHeroSlider() {
-    const images = Object.values(store.getAssetImages());
-    setInterval(() => {
-      const bgSlide = document.getElementById('hero-bg-slide');
-      if (bgSlide && store.getView() === 'landing') {
-        this.heroSlideIndex = (this.heroSlideIndex + 1) % images.length;
-        bgSlide.style.backgroundImage = `url('${images[this.heroSlideIndex]}')`;
+  setHeroSlide(index) {
+    const slides = HERO_SLIDES_DATA || [];
+    if (!slides.length) return;
+
+    this.heroSlideIndex = (index + slides.length) % slides.length;
+    const slide = slides[this.heroSlideIndex];
+
+    const heroImg = document.getElementById('hero-dynamic-img');
+    const heroCaption = document.getElementById('hero-dynamic-caption');
+
+    if (heroImg) {
+      heroImg.src = slide.image;
+      heroImg.alt = slide.title;
+    }
+    if (heroCaption) {
+      heroCaption.textContent = `${slide.badge} • ${slide.spec1}`;
+    }
+
+    const titleElem = document.querySelector('#hero-slider-container .hero-title');
+    const subElem = document.querySelector('#hero-slider-container .hero-subtitle');
+    const badgeElem = document.querySelector('#hero-slider-container .hero-badge');
+
+    if (titleElem) titleElem.textContent = slide.title;
+    if (subElem) subElem.textContent = slide.subtitle;
+    if (badgeElem) badgeElem.innerHTML = `<span>🧱</span> ${slide.badge}`;
+
+    document.querySelectorAll('.hero-carousel-dot').forEach((dot, idx) => {
+      if (idx === this.heroSlideIndex) {
+        dot.style.background = 'var(--primary-terracotta)';
+        dot.style.color = '#fff';
+        dot.style.border = 'none';
+      } else {
+        dot.style.background = 'rgba(255,255,255,0.1)';
+        dot.style.color = 'var(--text-muted)';
+        dot.style.border = '1px solid var(--bg-surface-border)';
       }
-    }, 4500);
+    });
+  }
+
+  startHeroSlider() {
+    if (this.heroInterval) clearInterval(this.heroInterval);
+    this.heroInterval = setInterval(() => {
+      if (store.getView() === 'landing') {
+        this.setHeroSlide(this.heroSlideIndex + 1);
+      }
+    }, 3500);
   }
 
   updateUserHeaderUI() {
@@ -392,13 +508,24 @@ class App {
       // AFTER LOGIN: When user/admin clicks Public Homepage or any view, sidebar STAYS VISIBLE with all remaining features!
       sidebar.style.display = (isLoggedIn && currentView !== 'login') ? 'flex' : 'none';
 
-      // Role Based Access Control: Hide Executive Dashboard & Payments Ledger from non-admin Users
       const isAdmin = role === 'owner';
-      const dashItem = document.getElementById('nav-item-dashboard');
-      const payItem = document.getElementById('nav-item-payments');
+      const setNavDisplay = (id, visible) => {
+        const elem = document.getElementById(id);
+        if (elem) elem.style.display = (isLoggedIn && visible) ? 'block' : 'none';
+      };
 
-      if (dashItem) dashItem.style.display = (isLoggedIn && isAdmin) ? 'block' : 'none';
-      if (payItem) payItem.style.display = (isLoggedIn && isAdmin) ? 'block' : 'none';
+      setNavDisplay('nav-item-dashboard', isAdmin);
+      setNavDisplay('nav-item-resources', isLoggedIn);
+      setNavDisplay('nav-item-orders', isLoggedIn);
+      setNavDisplay('nav-item-payments', isLoggedIn);
+      setNavDisplay('nav-item-production', isLoggedIn);
+      setNavDisplay('nav-item-deliveries', isLoggedIn);
+      setNavDisplay('nav-item-crm', isAdmin);
+      setNavDisplay('nav-item-workers', isLoggedIn);
+      setNavDisplay('nav-item-qc', isLoggedIn);
+      setNavDisplay('nav-item-finance', isAdmin);
+      setNavDisplay('nav-item-audit', isAdmin);
+      setNavDisplay('nav-item-reports', isAdmin);
     }
 
     document.querySelectorAll('.nav-link').forEach(link => {
@@ -451,6 +578,33 @@ class App {
         break;
       case 'payments':
         html = this.wrapWithFriendlyHeader(renderPaymentsLedger(), '💵 Financial Ledger & Payments', 'Complete track history of customer payments, advance deposits, GST breakdown & digital receipts.');
+        break;
+      case 'production':
+        html = this.wrapWithFriendlyHeader(renderProductionManager(), '🏭 Brick Production & Kiln Chambers', 'Raw material batch mixing, vacuum moulding, drying shed queues, and 1,050°C tunnel kilns.');
+        break;
+      case 'deliveries':
+        html = this.wrapWithFriendlyHeader(renderDeliveriesManager(), '🚚 Freight Transport & Deliveries', 'Heavy logistics fleet, driver assignments, loading quantities, freight costs, and live site dispatches.');
+        break;
+      case 'crm':
+        html = this.wrapWithFriendlyHeader(renderCRMManager(), '👥 Customer CRM & Accounts', 'Contractor profiles, builder GST credentials, transaction histories, and outstanding credit balances.');
+        break;
+      case 'workers':
+        html = this.wrapWithFriendlyHeader(renderWorkerManager(), '👷 Worker Roster & Shift Operations', 'Kiln operators, moulding technicians, loading foremen, attendance logs, and daily wage rosters.');
+        break;
+      case 'qc':
+        html = this.wrapWithFriendlyHeader(renderQCManager(), '🧪 Quality Control & Testing', 'Laboratory compressive strength testing, water absorption analysis, dimensional tolerance, and clearance certificate.');
+        break;
+      case 'finance':
+        html = this.wrapWithFriendlyHeader(renderFinanceManager(), '💰 Finance, Expenses, Vendors & P&L', 'Raw material suppliers, factory operational expenses, GST tax configurations, and profit/loss performance.');
+        break;
+      case 'audit':
+        html = this.wrapWithFriendlyHeader(renderAuditView(), '🔐 Security Audit Logs & Data Backup', 'Immutable system audit trails, user action tracking, and 1-Click CSV data exports for business compliance.');
+        break;
+      case 'reports':
+        html = this.wrapWithFriendlyHeader(renderReportsView(), '📊 Business Intelligence & Audit Reports', 'Sales revenue audits, production output reports, inventory closing balances, and freight logs.');
+        break;
+      case 'settings':
+        html = this.wrapWithFriendlyHeader(renderSettingsView(), '⚙️ Admin Business Settings', 'Configure enterprise tax rates, GSTIN credentials, document prefixes, default pricing, and freight parameters.');
         break;
       case 'builder':
         html = this.wrapWithFriendlyHeader(renderBuilderPortal(), '🏗️ Builder & Estimator Portal', 'Estimate brick quantities, calculate mortar ratios, track job site dispatches, and request bulk quotes.');

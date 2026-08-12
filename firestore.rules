@@ -1,9 +1,117 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Allow read/write for all users (clients, workers, builders, admins)
-    match /{document=**} {
-      allow read, write: if true;
+
+    // Helper functions for Authentication & Role-Based Access Control (RBAC)
+    function isAuthenticated() {
+      return request.auth != null;
     }
+    
+    function getUserRole() {
+      return request.auth.token.role;
+    }
+
+    function isSuperAdminOrOwner() {
+      return isAuthenticated() && (
+        getUserRole() == 'owner' || 
+        getUserRole() == 'superadmin' || 
+        request.auth.token.email == 'syamratnam123@gmail.com'
+      );
+    }
+
+    function isProductionManager() {
+      return isAuthenticated() && (getUserRole() == 'production' || isSuperAdminOrOwner());
+    }
+
+    function isDeliveryManager() {
+      return isAuthenticated() && (getUserRole() == 'logistics' || getUserRole() == 'delivery' || isSuperAdminOrOwner());
+    }
+
+    function isCustomer() {
+      return isAuthenticated() && getUserRole() == 'builder';
+    }
+
+    // 1. Users Profile Collection
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow write: if isSuperAdminOrOwner() || request.auth.uid == userId;
+    }
+
+    // 2. Customers CRM Collection
+    match /customers/{customerId} {
+      allow read: if isAuthenticated();
+      allow write: if isSuperAdminOrOwner();
+    }
+
+    // 3. Products Catalogue Collection
+    match /products/{productId} {
+      allow read: if true; // Public catalogue viewable by guests & customers
+      allow write: if isSuperAdminOrOwner();
+    }
+
+    // 4. Orders Collection
+    match /orders/{orderId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update: if isSuperAdminOrOwner() || isProductionManager() || isDeliveryManager();
+      allow delete: if isSuperAdminOrOwner();
+    }
+
+    // 5. Payments & Financial Ledger Collection
+    match /payments/{paymentId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update, delete: if isSuperAdminOrOwner();
+    }
+
+    // 6. Resources & Inventory Collection
+    match /resources/{resourceId} {
+      allow read: if isAuthenticated();
+      allow write: if isProductionManager() || isSuperAdminOrOwner();
+    }
+
+    // 7. Kiln Chambers Collection
+    match /kiln_chambers/{chamberId} {
+      allow read: if isAuthenticated();
+      allow write: if isProductionManager() || isSuperAdminOrOwner();
+    }
+
+    // 8. Production Batches Collection
+    match /production/{batchId} {
+      allow read: if isAuthenticated();
+      allow write: if isProductionManager() || isSuperAdminOrOwner();
+    }
+
+    // 9. Quality Control (QC) Testing Collection
+    match /quality_control/{qcId} {
+      allow read: if isAuthenticated();
+      allow write: if isProductionManager() || isSuperAdminOrOwner();
+    }
+
+    // 10. Deliveries & Fleet Logistics Collection
+    match /deliveries/{deliveryId} {
+      allow read: if isAuthenticated();
+      allow write: if isDeliveryManager() || isSuperAdminOrOwner();
+    }
+
+    // 11. Vendors & Purchase Orders Collection
+    match /vendors/{vendorId} {
+      allow read: if isSuperAdminOrOwner();
+      allow write: if isSuperAdminOrOwner();
+    }
+
+    // 12. Expenses & Payroll Collection
+    match /expenses/{expenseId} {
+      allow read: if isSuperAdminOrOwner();
+      allow write: if isSuperAdminOrOwner();
+    }
+
+    // 13. Audit Logs Collection
+    match /audit_logs/{logId} {
+      allow read: if isSuperAdminOrOwner();
+      allow create: if isAuthenticated();
+      allow update, delete: if false; // Immutable audit log
+    }
+
   }
 }

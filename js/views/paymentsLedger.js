@@ -3,8 +3,25 @@
 import { store } from '../store.js';
 
 export function renderPaymentsLedger() {
-  const payments = store.getPayments();
-  const orders = store.getOrders();
+  const currentUser = store.getCurrentUser();
+  const isAdmin = currentUser && currentUser.role === 'owner';
+
+  let payments = store.getPayments();
+  let orders = store.getOrders();
+
+  // Non-Admin User Privacy Filter: "don't show other payments"
+  if (!isAdmin && currentUser) {
+    orders = orders.filter(o => 
+      o.clientName?.toLowerCase().includes(currentUser.name?.toLowerCase()) ||
+      o.clientName?.toLowerCase().includes((currentUser.company || '').toLowerCase()) ||
+      o.contactPerson?.toLowerCase().includes(currentUser.name?.toLowerCase())
+    );
+    const userOrderIds = orders.map(o => o.id);
+    payments = payments.filter(p => 
+      userOrderIds.includes(p.orderId) ||
+      p.clientName?.toLowerCase().includes(currentUser.name?.toLowerCase())
+    );
+  }
 
   const totalCollected = payments.reduce((sum, p) => sum + p.amount, 0);
   const totalOutstanding = orders.reduce((sum, o) => sum + o.balance, 0);
@@ -13,15 +30,17 @@ export function renderPaymentsLedger() {
   return `
     <div class="view-header">
       <div class="view-title-group">
-        <h1>Payments & Invoicing History Ledger</h1>
-        <p>Complete track history of customer payments, advance deposits, outstanding balances & digital receipts</p>
+        <h1>${isAdmin ? 'Executive Financial Payments & Receipts Ledger' : 'My Account Payments & Invoices'}</h1>
+        <p>${isAdmin ? 'Complete track history of customer payments, advance deposits, outstanding balances & digital receipts' : 'Track your order payments, advance deposits, remaining balances & download payment receipts'}</p>
       </div>
-      <div class="view-actions">
-        <button class="btn btn-primary" id="btn-open-record-payment">
-          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 4v16m-8-8h16"/></svg>
-          Record New Customer Payment
-        </button>
-      </div>
+      ${isAdmin ? `
+        <div class="view-actions">
+          <button class="btn btn-primary" id="btn-open-record-payment">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 4v16m-8-8h16"/></svg>
+            Record New Customer Payment
+          </button>
+        </div>
+      ` : ''}
     </div>
 
     <!-- Financial KPI Summary Cards -->

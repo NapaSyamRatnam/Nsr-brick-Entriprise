@@ -25,12 +25,12 @@ export class FirebaseFirestoreService {
     }
   }
 
-  // Auto Push Admin Manager Syam Ratnam & Core Collections to Firebase Firestore
+  // Auto Push Admin Manager Syam Ratnam & All Core Collections to Firebase Firestore
   async autoPushInitialDataToFirestore() {
     if (!this.db) return;
 
     try {
-      // Push Admin Manager Profile to 'users' collection
+      // 1. Push Admin Manager Profile to 'users' collection
       await this.db.collection('users').doc('admin_syam_ratnam').set({
         name: 'Syam Ratnam (Admin Manager)',
         email: 'syamratnam123@gmail.com',
@@ -43,19 +43,10 @@ export class FirebaseFirestoreService {
 
       console.log('🔥 Admin Manager Syam Ratnam pushed to Firebase Firestore (users/admin_syam_ratnam)');
 
-      // Push Seed Products to 'products' collection
-      const products = store.getProducts();
-      for (const p of products) {
-        await this.db.collection('products').doc(p.id).set(p, { merge: true });
-      }
+      // 2. Sync all collections end-to-end to Firestore database
+      await this.syncAllDataToFirestore();
 
-      // Push Initial Orders to 'orders' collection
-      const orders = store.getOrders();
-      for (const o of orders) {
-        await this.db.collection('orders').doc(o.id).set(o, { merge: true });
-      }
-
-      console.log('🔥 Core Products & Orders automatically synced to Firebase Firestore database!');
+      console.log('🔥 All collections (users, products, orders, payments, resources, kiln_chambers) fully synced to Firebase Firestore database!');
     } catch (err) {
       console.warn('Firestore auto-push note:', err.message);
     }
@@ -185,7 +176,52 @@ export class FirebaseFirestoreService {
         await this.db.collection('payments').doc(pay.id).set(pay, { merge: true });
       }
 
-      console.log('🔥 Complete Firebase Firestore database sync complete across resources, kiln chambers, orders, and payments!');
+      const batches = store.getProductionBatches();
+      for (const batch of batches) {
+        await this.db.collection('production').doc(batch.id).set(batch, { merge: true });
+      }
+
+      const customers = store.getCustomers();
+      for (const cust of customers) {
+        await this.db.collection('customers').doc(cust.id).set(cust, { merge: true });
+      }
+
+      const workers = store.getWorkers();
+      for (const wrk of workers) {
+        await this.db.collection('workers').doc(wrk.id).set(wrk, { merge: true });
+      }
+
+      const deliveries = store.getDeliveries();
+      for (const del of deliveries) {
+        await this.db.collection('deliveries').doc(del.id).set(del, { merge: true });
+      }
+
+      const qcLogs = store.getQualityControl();
+      for (const qc of qcLogs) {
+        await this.db.collection('quality_control').doc(qc.id).set(qc, { merge: true });
+      }
+
+      const vendors = store.getVendors();
+      for (const v of vendors) {
+        await this.db.collection('vendors').doc(v.id).set(v, { merge: true });
+      }
+
+      const expenses = store.getExpenses();
+      for (const e of expenses) {
+        await this.db.collection('expenses').doc(e.id).set(e, { merge: true });
+      }
+
+      const auditLogs = store.getAuditLogs();
+      for (const log of auditLogs) {
+        await this.db.collection('audit_logs').doc(log.id).set(log, { merge: true });
+      }
+
+      const quotations = store.getQuotations();
+      for (const q of quotations) {
+        await this.db.collection('quotations').doc(q.id).set(q, { merge: true });
+      }
+
+      console.log('🔥 Complete Firebase Firestore database sync complete across all 13 core collections: users, customers, products, orders, payments, resources, kiln_chambers, production, quality_control, deliveries, vendors, expenses, and audit_logs!');
     } catch (err) {
       console.warn('Full sync note:', err.message);
     }
